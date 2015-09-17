@@ -29,4 +29,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.0.0'
     compile files('libs/Xg_sdk_v2.38_20150616_1057.jar')
     compile files('libs/httpcore-4.2.4.jar')
+    compile files('libs/libammsdk.jar')
 }

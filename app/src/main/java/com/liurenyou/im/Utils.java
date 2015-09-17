@@ -36,6 +36,7 @@ public class Utils {
         }
 
         try {
+            /*
             String uri = "http://im1.6renyou.com:8989/auth";
             HttpClient client = new DefaultHttpClient();
             HttpPost post = new HttpPost(uri);
@@ -47,19 +48,28 @@ public class Utils {
             JSONObject obj = new JSONObject(body);
 
             if(obj.getString("status").equals("ok")){
-                String token = obj.getString("token");
+
+                */
+
+                String token = "";//obj.getString("token");
                 msg.what = 1002;
                 Utils.token = token;
                 Utils.deviceToken = deviceToken;
                 msg.obj = new String[]{deviceToken, token};
+            /*
             }else{
                 msg.obj = obj.getString("msg");
                 msg.what = 1001;
             }
+            */
 
-            ((MyApplication) context.getApplicationContext()).getHandler().sendMessage(msg);
+
         }catch(Exception e){
-            Log.e("6renyou", e.toString());
+            Log.e("6renyou", e.getMessage());
+            msg.obj = e.getMessage();
+            msg.what = 1001;
+        }finally{
+            ((MyApplication) context.getApplicationContext()).getHandler().sendMessage(msg);
         }
     }
 

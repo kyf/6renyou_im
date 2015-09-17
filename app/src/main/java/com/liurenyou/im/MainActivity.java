@@ -2,22 +2,38 @@ package com.liurenyou.im;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.liurenyou.im.uikit.MMAlert;
 import com.tencent.android.tpush.XGIOperateCallback;
 import com.tencent.android.tpush.XGPushManager;
+import com.tencent.mm.sdk.openapi.IWXAPI;
+import com.tencent.mm.sdk.openapi.SendMessageToWX;
+import com.tencent.mm.sdk.openapi.WXAPIFactory;
+import com.tencent.mm.sdk.openapi.WXMediaMessage;
+import com.tencent.mm.sdk.openapi.WXTextObject;
+
 
 
 public class MainActivity extends Activity {
@@ -27,6 +43,8 @@ public class MainActivity extends Activity {
     private Context myContext;
 
     private WebView mainView;
+
+    private IWXAPI api;
 
     private Handler myHandler = new Handler(){
 
@@ -54,16 +72,105 @@ public class MainActivity extends Activity {
                     settings.setDatabaseEnabled(true);
 
                     settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
-                    mainView.addJavascriptInterface(new JavaScriptMethods(myContext), "JavaScriptMethods");
-                    //mainView.loadUrl("http://m.6renyou.com/android/index?token=" + token);
-
+                    JavaScriptMethods jsm = new JavaScriptMethods(myContext);
+                    mainView.addJavascriptInterface(jsm, "JavaScriptMethods");
 
                     mainView.setWebChromeClient(new WebChromeClient(){
+
+                        //For Android 4.1
+                        public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType, String capture) {
+
+                            mUploadMessage1 = uploadMsg;
+                            Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                            i.addCategory(Intent.CATEGORY_OPENABLE);
+                            i.setType("image/*");
+                            MainActivity.this.startActivityForResult(Intent.createChooser(i, "File Chooser"), MainActivity.FILECHOOSER_RESULTCODE);
+
+                        }
+
+                        protected void openFileChooser(ValueCallback<Uri> uploadMsg)
+                        {
+                            mUploadMessage1 = uploadMsg;
+                            Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                            i.addCategory(Intent.CATEGORY_OPENABLE);
+                            i.setType("image/*");
+                            startActivityForResult(Intent.createChooser(i, "File Chooser"), FILECHOOSER_RESULTCODE);
+                        }
+
+                        // For 3.0+ Devices (Start)
+                        protected void openFileChooser(ValueCallback uploadMsg, String acceptType)
+                        {
+                            mUploadMessage1 = uploadMsg;
+                            Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                            i.addCategory(Intent.CATEGORY_OPENABLE);
+                            i.setType("image/*");
+                            startActivityForResult(Intent.createChooser(i, "File Browser"), FILECHOOSER_RESULTCODE);
+                        }
+
+                        //For Android 5.0
+                        public boolean  onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback,
+                                          FileChooserParams fileChooserParams){
+                            if (MainActivity.this.mUploadMessage != null) {
+                                MainActivity.this.mUploadMessage.onReceiveValue(null);
+                                MainActivity.this.mUploadMessage = null;
+                            }
+
+                            MainActivity.this.mUploadMessage = filePathCallback;
+                            Intent intent = fileChooserParams.createIntent();
+                            try {
+                                MainActivity.this.startActivityForResult(intent, FILECHOOSER_RESULTCODE);
+                            } catch (ActivityNotFoundException e) {
+                                MainActivity.this.mUploadMessage = null;
+                                Toast.makeText(MainActivity.this, "Cannot open file chooser", Toast.LENGTH_LONG).show();
+                                return false;
+                            }
+
+                            return true;
+
+                        }
+
                         @Override
                         public void onProgressChanged(WebView view, int newProgress) {
                             if(newProgress == 100){
                                 myHandler.sendEmptyMessage(1003);
+                                /*****send message to wx ****************/
+                            /*
+                                final EditText editor = new EditText(MainActivity.this);
+                                editor.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                                editor.setText(R.string.send_text_default);
+
+                                MMAlert.showAlert(MainActivity.this, "send text", editor, getString(R.string.app_share), getString(R.string.app_cancel), new DialogInterface.OnClickListener() {
+
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        String text = editor.getText().toString();
+                                        if (text == null || text.length() == 0) {
+                                            return;
+                                        }
+
+
+                                        WXTextObject textObj = new WXTextObject();
+                                        textObj.text = text;
+
+                                        WXMediaMessage msg = new WXMediaMessage();
+                                        msg.mediaObject = textObj;
+                                        msg.description = text;
+
+
+                                        SendMessageToWX.Req req = new SendMessageToWX.Req();
+                                        req.transaction = buildTransaction("text");
+                                        req.message = msg;
+                                        req.scene = SendMessageToWX.Req.WXSceneTimeline;
+
+
+                                        boolean result = api.sendReq(req);
+                                        Toast.makeText(MainActivity.this, "" + result, Toast.LENGTH_SHORT).show();
+                                    }
+                                }, null);
+                                */
+                                        /*****************end*******************/
                             }
+
                             super.onProgressChanged(view, newProgress);
                         }
                     });
@@ -75,8 +182,7 @@ public class MainActivity extends Activity {
                             return true;
                         }
                     });
-
-                    mainView.loadUrl("http://m.6renyou.com/android/order?token=" + token);
+                    mainView.loadUrl("http://m.6renyou.com/android/index");
                 case 1003:
                     pd.dismiss();
             }
@@ -84,13 +190,47 @@ public class MainActivity extends Activity {
 
     };
 
+    private ValueCallback<Uri[]> mUploadMessage;
+    private ValueCallback<Uri> mUploadMessage1;
+    private final static int FILECHOOSER_RESULTCODE = 1;
+
+    private String buildTransaction(final String type) {
+        return (type == null) ? String.valueOf(System.currentTimeMillis()) : type + System.currentTimeMillis();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode,
+                                    Intent intent) {
+
+        if (requestCode == FILECHOOSER_RESULTCODE) {
+            if (null != mUploadMessage1) {
+                Uri result = intent == null || resultCode != RESULT_OK ? null
+                        : intent.getData();
+                mUploadMessage1.onReceiveValue(result);
+                mUploadMessage1 = null;
+            }
+
+            if(null != mUploadMessage){
+                mUploadMessage.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, intent));
+                mUploadMessage = null;
+            }
+        }
+    }
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        api = WXAPIFactory.createWXAPI(this, Constants.APP_ID, true);
         setContentView(R.layout.activity_main);
         ((MyApplication)this.getApplicationContext()).setHandler(myHandler);
         myContext = this;
         pd = ProgressDialog.show(this, "", "connecting ...", true, true);
+
+
+        api.registerApp(Constants.APP_ID);
+
 
         XGPushManager.registerPush(this, new XGIOperateCallback() {
             @Override
