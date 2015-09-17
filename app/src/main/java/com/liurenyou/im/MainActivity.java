@@ -10,6 +10,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Bundle;
@@ -34,6 +35,12 @@ import com.tencent.mm.sdk.openapi.WXAPIFactory;
 import com.tencent.mm.sdk.openapi.WXMediaMessage;
 import com.tencent.mm.sdk.openapi.WXTextObject;
 
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
 
 
 public class MainActivity extends Activity {
@@ -313,7 +320,35 @@ public class MainActivity extends Activity {
             return Utils.deviceToken;
         }
 
+        @JavascriptInterface
+        public String getDeviceInfo(){
+            Map<String, String> info = new HashMap<String, String>();
+            TimeZone tz = TimeZone.getDefault();
 
+            String name = Build.USER;//设备名称，用户在设置中自定义的名称
+            String timezone = tz.getID();//时区
+            String appversion = "1.0";//app版本
+            String clientid = Utils.deviceToken;//客户端id
+            String systemversion = Build.VERSION.RELEASE  ;//系统版本，7.0+
+            String systemname = "Android";//系统名称，一般为iPhone OS
+            String devicemodel = Build.MODEL;//设备型号
+            String country = "zh";//国家
+            String language = getResources().getConfiguration().locale.getLanguage();// 语言
+
+            info.put("name", name);
+            info.put("timezone", timezone);
+            info.put("appversion", appversion);
+            info.put("clientid", clientid);
+            info.put("systemversion", systemversion);
+            info.put("systemname", systemname);
+            info.put("devicemodel", devicemodel);
+            info.put("country", country);
+            info.put("language", language);
+
+
+            JSONObject json = new JSONObject(info);
+            return json.toString();
+        }
 
     }
 
