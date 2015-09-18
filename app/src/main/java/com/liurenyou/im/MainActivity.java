@@ -1,6 +1,9 @@
 package com.liurenyou.im;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -10,12 +13,16 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -24,6 +31,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.liurenyou.im.uikit.MMAlert;
@@ -37,6 +45,13 @@ import com.tencent.mm.sdk.openapi.WXTextObject;
 
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -82,7 +97,7 @@ public class MainActivity extends Activity {
                     JavaScriptMethods jsm = new JavaScriptMethods(myContext);
                     mainView.addJavascriptInterface(jsm, "JavaScriptMethods");
 
-                    mainView.setWebChromeClient(new WebChromeClient(){
+                    mainView.setWebChromeClient(new WebChromeClient() {
 
                         //For Android 4.1
                         public void openFileChooser(ValueCallback<Uri> uploadMsg, String acceptType, String capture) {
@@ -95,8 +110,7 @@ public class MainActivity extends Activity {
 
                         }
 
-                        protected void openFileChooser(ValueCallback<Uri> uploadMsg)
-                        {
+                        protected void openFileChooser(ValueCallback<Uri> uploadMsg) {
                             mUploadMessage1 = uploadMsg;
                             Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                             i.addCategory(Intent.CATEGORY_OPENABLE);
@@ -105,8 +119,7 @@ public class MainActivity extends Activity {
                         }
 
                         // For 3.0+ Devices (Start)
-                        protected void openFileChooser(ValueCallback uploadMsg, String acceptType)
-                        {
+                        protected void openFileChooser(ValueCallback uploadMsg, String acceptType) {
                             mUploadMessage1 = uploadMsg;
                             Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                             i.addCategory(Intent.CATEGORY_OPENABLE);
@@ -115,8 +128,8 @@ public class MainActivity extends Activity {
                         }
 
                         //For Android 5.0
-                        public boolean  onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback,
-                                          FileChooserParams fileChooserParams){
+                        public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback,
+                                                         FileChooserParams fileChooserParams) {
                             if (MainActivity.this.mUploadMessage != null) {
                                 MainActivity.this.mUploadMessage.onReceiveValue(null);
                                 MainActivity.this.mUploadMessage = null;
@@ -138,51 +151,14 @@ public class MainActivity extends Activity {
 
                         @Override
                         public void onProgressChanged(WebView view, int newProgress) {
-                            if(newProgress == 100){
+                            if (newProgress == 100) {
                                 myHandler.sendEmptyMessage(1003);
-                                /*****send message to wx ****************/
-/*
-                                final EditText editor = new EditText(MainActivity.this);
-                                editor.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-                                editor.setText(R.string.send_text_default);
-
-                                MMAlert.showAlert(MainActivity.this, "send text", editor, getString(R.string.app_share), getString(R.string.app_cancel), new DialogInterface.OnClickListener() {
-
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        String text = editor.getText().toString();
-                                        if (text == null || text.length() == 0) {
-                                            return;
-                                        }
-
-
-                                        WXTextObject textObj = new WXTextObject();
-                                        textObj.text = text;
-
-                                        WXMediaMessage msg = new WXMediaMessage();
-                                        msg.mediaObject = textObj;
-                                        msg.description = text;
-
-
-                                        SendMessageToWX.Req req = new SendMessageToWX.Req();
-                                        req.transaction = buildTransaction("text");
-                                        req.message = msg;
-                                        req.scene = SendMessageToWX.Req.WXSceneTimeline;
-
-
-                                        boolean result = api.sendReq(req);
-                                        Toast.makeText(MainActivity.this, "" + result, Toast.LENGTH_SHORT).show();
-                                    }
-                                }, null);
-*/
-                                        /*****************end*******************/
                             }
-
                             super.onProgressChanged(view, newProgress);
                         }
                     });
 
-                    mainView.setWebViewClient(new WebViewClient(){
+                    mainView.setWebViewClient(new WebViewClient() {
                         @Override
                         public boolean shouldOverrideUrlLoading(WebView view, String url) {
                             view.loadUrl(url);
@@ -190,6 +166,7 @@ public class MainActivity extends Activity {
                         }
                     });
                     mainView.loadUrl("http://m.6renyou.com/android/index");
+                    //jsm.sharePicToCircle1(R.drawable.ic_launcher);
                 case 1003:
                     pd.dismiss();
             }
@@ -206,8 +183,7 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode,
-                                    Intent intent) {
+    protected void onActivityResult(int requestCode, int resultCode,Intent intent) {
 
         if (requestCode == FILECHOOSER_RESULTCODE) {
             if (null != mUploadMessage1) {
@@ -229,6 +205,19 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        /*
+        versionCode = getVersionCode(this);
+
+        new Handler().postDelayed(new Thread() {
+            @Override
+            public void run() {
+                UpdateTask task = new UpdateTask();
+                task.execute();
+            }
+        }, 1000);
+*/
+
         api = WXAPIFactory.createWXAPI(this, Constants.APP_ID, true);
         setContentView(R.layout.activity_main);
         ((MyApplication)this.getApplicationContext()).setHandler(myHandler);
@@ -290,81 +279,146 @@ public class MainActivity extends Activity {
         super.onResume();
     }
 
-
-    public class JavaScriptMethods {
-
-        private Context mContext;
-
-
-        public JavaScriptMethods(Context context){
-            mContext = context;
+/*
+    private int getVersionCode(Context context) {
+        int _versionCode = 0;
+        try {
+            _versionCode = context.getPackageManager().getPackageInfo("com.liurenyou.im", 0).versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
         }
-
-        @JavascriptInterface
-        public void alert(String content){
-            Toast.makeText(mContext, content, Toast.LENGTH_LONG).show();
-        }
-
-        @JavascriptInterface
-        public String getToken(){
-            return Utils.token;
-        }
-
-        @JavascriptInterface
-        public void shareTextToFriend(String content){
-            WeixinShareManager wsm = WeixinShareManager.getInstance(MainActivity.this);
-            wsm.shareByWeixin(wsm.new ShareContentText(content),
-                    WeixinShareManager.WEIXIN_SHARE_TYPE_TALK);
-        }
-
-        @JavascriptInterface
-        public void shareTextToCircle(String content){
-            WeixinShareManager wsm = WeixinShareManager.getInstance(MainActivity.this);
-            wsm.shareByWeixin(wsm.new ShareContentText(content),
-                    WeixinShareManager.WEIXIN_SHARE_TYPE_FRENDS);
-        }
-
-
-        @JavascriptInterface
-        public String getOnline(){
-            return Utils.online;
-        }
-
-        @JavascriptInterface
-        public String getDeviceToken(){
-            return Utils.deviceToken;
-        }
-
-        @JavascriptInterface
-        public String getDeviceInfo(){
-            Map<String, String> info = new HashMap<String, String>();
-            TimeZone tz = TimeZone.getDefault();
-
-            String name = Build.USER;//设备名称，用户在设置中自定义的名称
-            String timezone = tz.getID();//时区
-            String appversion = "1.0";//app版本
-            String clientid = Utils.deviceToken;//客户端id
-            String systemversion = Build.VERSION.RELEASE  ;//系统版本，7.0+
-            String systemname = "Android";//系统名称，一般为iPhone OS
-            String devicemodel = Build.MODEL;//设备型号
-            String country = "zh";//国家
-            String language = getResources().getConfiguration().locale.getLanguage();// 语言
-
-            info.put("name", name);
-            info.put("timezone", timezone);
-            info.put("appversion", appversion);
-            info.put("clientid", clientid);
-            info.put("systemversion", systemversion);
-            info.put("systemname", systemname);
-            info.put("devicemodel", devicemodel);
-            info.put("country", country);
-            info.put("language", language);
-
-
-            JSONObject json = new JSONObject(info);
-            return json.toString();
-        }
-
+        return _versionCode;
     }
+
+    @SuppressWarnings("UnnecessarySemicolon")
+    private class UpdateTask extends AsyncTask<Integer, Void, String> {
+        UpdateTask() {};
+
+        protected String doInBackground(Integer... _array) {
+            String result = bench.getVersionCode();
+            return result;
+        }
+
+        protected void onPostExecute(String result) {
+            if (result.length() == 0) {
+                Toast.makeText(MainActivity.this, R.string.network_fail, Toast.LENGTH_LONG).show();
+            } else {
+                try {
+                    JSONObject _result = new JSONObject(result);
+                    String _apiCode = _result.getString("apiCode");
+                    if (_apiCode.equals("10000")) {
+                        JSONObject _data = _result.getJSONObject("data");
+                        if (_data.getInt("versionCode") > versionCode) {
+                            final String _update_url = _data.getString("apkUrl");
+                            new AlertDialog.Builder(MainActivity.this)
+                                    .setTitle(getString(R.string.logo_str1))
+                                    .setMessage(getString(R.string.logo_str2))
+                                    .setPositiveButton(getString(R.string.logo_str3),
+                                            new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(
+                                                        DialogInterface dialog,
+                                                        int which) {
+                                                    MainActivity.this.UpdateApk(_update_url);
+                                                }
+                                            })
+                                    .setNegativeButton(
+                                            getString(R.string.logo_str4),
+                                            new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(
+                                                        DialogInterface dialog,
+                                                        int which) {
+                                                    dialog.dismiss();
+                                                    MainActivity.this
+                                                            .startActivity(new Intent(
+                                                                    MainActivity.this,
+                                                                    MainActivity.class));
+                                                    MainActivity.this.finish();
+                                                }
+                                            }).show();
+
+                        } else {
+                            java.lang.Thread.sleep(3000);
+                            MainActivity.this.startActivity(new Intent(
+                                    MainActivity.this, MainActivity.class));
+                            MainActivity.this.finish();
+                        }
+                    } else {
+                        // do nothing
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private int versionCode;
+    private Dialog dialog;
+    private ProgressBar progress;
+
+    public void UpdateApk(final String url) {
+        AlertDialog.Builder _builder = new AlertDialog.Builder(this);
+        _builder.setTitle(getString(R.string.logo_str5));
+        final LayoutInflater _inflater = LayoutInflater.from(this);
+        @SuppressLint("InflateParams") View _view = _inflater.inflate(R.layout.activity_logo_update_progress, null);
+        progress = (ProgressBar) _view.findViewById(R.id.update_progress);
+        _builder.setView(_view);
+        dialog = _builder.create();
+        dialog.show();
+
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    if (Environment.getExternalStorageState().equals(
+                            Environment.MEDIA_MOUNTED)) {
+                        int _progress = 0;
+                        File sdCard = Environment.getExternalStorageDirectory();
+                        String sdPath = sdCard.getAbsolutePath() + "/"
+                                + Constants.baseDir;
+                        URL _url = new URL(url);
+
+                        HttpURLConnection conn = (HttpURLConnection) _url
+                                .openConnection();
+                        conn.connect();
+                        int length = conn.getContentLength();
+                        InputStream is = conn.getInputStream();
+
+                        File apkFile = new File(sdPath + "/" + "6renyou.apk");
+                        FileOutputStream fos = new FileOutputStream(apkFile);
+                        int count = 0;
+
+                        byte buf[] = new byte[1024];
+                        do {
+                            int _num = is.read(buf);
+                            count += _num;
+
+                            _progress = (int) (((float) count / length) * 100);
+                            progress.setProgress(_progress);
+                            if (_num <= 0) {
+                                break;
+                            }
+                            fos.write(buf, 0, _num);
+                        } while (true);
+                        fos.close();
+                        is.close();
+                        dialog.dismiss();
+                        Intent _intent = new Intent(Intent.ACTION_VIEW);
+                        _intent.setDataAndType(
+                                Uri.parse("file://" + apkFile.toString()),
+                                "application/vnd.android.package-archive");
+                        MainActivity.this.startActivity(_intent);
+                        MainActivity.this.finish();
+                    }
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+*/
 
 }
