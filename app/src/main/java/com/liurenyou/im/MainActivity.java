@@ -141,7 +141,7 @@ public class MainActivity extends Activity {
                             if(newProgress == 100){
                                 myHandler.sendEmptyMessage(1003);
                                 /*****send message to wx ****************/
-                            /*
+/*
                                 final EditText editor = new EditText(MainActivity.this);
                                 editor.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                                 editor.setText(R.string.send_text_default);
@@ -174,7 +174,7 @@ public class MainActivity extends Activity {
                                         Toast.makeText(MainActivity.this, "" + result, Toast.LENGTH_SHORT).show();
                                     }
                                 }, null);
-                                */
+*/
                                         /*****************end*******************/
                             }
 
@@ -309,6 +309,21 @@ public class MainActivity extends Activity {
         public String getToken(){
             return Utils.token;
         }
+
+        @JavascriptInterface
+        public void shareTextToFriend(String content){
+            WeixinShareManager wsm = WeixinShareManager.getInstance(MainActivity.this);
+            wsm.shareByWeixin(wsm.new ShareContentText(content),
+                    WeixinShareManager.WEIXIN_SHARE_TYPE_TALK);
+        }
+
+        @JavascriptInterface
+        public void shareTextToCircle(String content){
+            WeixinShareManager wsm = WeixinShareManager.getInstance(MainActivity.this);
+            wsm.shareByWeixin(wsm.new ShareContentText(content),
+                    WeixinShareManager.WEIXIN_SHARE_TYPE_FRENDS);
+        }
+
 
         @JavascriptInterface
         public String getOnline(){
