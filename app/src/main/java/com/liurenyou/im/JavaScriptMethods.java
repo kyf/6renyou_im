@@ -70,6 +70,20 @@ public class JavaScriptMethods {
                 WeixinShareManager.WEIXIN_SHARE_TYPE_FRENDS);
     }
 
+    @JavascriptInterface
+    public void shareWebToFriend(String title, String content, String url){
+        WeixinShareManager wsm = WeixinShareManager.getInstance(mContext);
+        wsm.shareByWeixin(wsm.new ShareContentWebpage(title, content, url, R.mipmap.ic_launcher),
+                WeixinShareManager.WEIXIN_SHARE_TYPE_TALK);
+    }
+
+    @JavascriptInterface
+    public void shareWebToCircle(String title, String content, String url){
+        WeixinShareManager wsm = WeixinShareManager.getInstance(mContext);
+        wsm.shareByWeixin(wsm.new ShareContentWebpage(title, content, url, R.mipmap.ic_launcher),
+                WeixinShareManager.WEIXIN_SHARE_TYPE_FRENDS);
+    }
+
 
     @JavascriptInterface
     public String getOnline(){

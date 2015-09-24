@@ -111,7 +111,7 @@ public class WeixinShareUtil {
         byte[] b = null;
         try {
             RandomAccessFile in = new RandomAccessFile(fileName, "r");
-            b = new byte[len]; // ���������ļ���С������
+            b = new byte[len];
             in.seek(offset);
             in.readFully(b);
             in.close();

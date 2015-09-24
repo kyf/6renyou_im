@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -20,6 +21,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,6 +45,15 @@ import com.tencent.mm.sdk.openapi.WXAPIFactory;
 import com.tencent.mm.sdk.openapi.WXMediaMessage;
 import com.tencent.mm.sdk.openapi.WXTextObject;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -52,7 +63,9 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
@@ -165,10 +178,39 @@ public class MainActivity extends Activity {
                             return true;
                         }
                     });
-                    mainView.loadUrl("http://m.6renyou.com/android/index");
-                    //jsm.sharePicToCircle1(R.drawable.ic_launcher);
+                    mainView.loadUrl(Constants.homePage);
+                    break;
                 case 1003:
                     pd.dismiss();
+                    break;
+                case 1004:
+                    String obj = (String) msg.obj;
+                    try {
+                        JSONObject jsonObject = new JSONObject(obj);
+                        com.liurenyou.im.widget.AlertDialog iosDialog = new com.liurenyou.im.widget.AlertDialog(MainActivity.this);
+                        iosDialog.builder();
+                        iosDialog.setTitle("版本升级");
+                        iosDialog.setMsg(jsonObject.getString("desc"), Gravity.LEFT);
+                        iosDialog.setCancelable(true);
+                        iosDialog.setPositiveButton("", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                Toast.makeText(myContext, "已转入后台下载", Toast.LENGTH_LONG).show();
+                                UpdateApk(Constants.apkURL);
+                            }
+                        });
+
+                        iosDialog.setNegativeButton("", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+
+                            }
+                        });
+                        iosDialog.show();
+                    }catch(Exception e){
+                        Log.e("6renyou", e.getMessage());
+                    }
+                    break;
             }
         }
 
@@ -177,10 +219,6 @@ public class MainActivity extends Activity {
     private ValueCallback<Uri[]> mUploadMessage;
     private ValueCallback<Uri> mUploadMessage1;
     private final static int FILECHOOSER_RESULTCODE = 1;
-
-    private String buildTransaction(final String type) {
-        return (type == null) ? String.valueOf(System.currentTimeMillis()) : type + System.currentTimeMillis();
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode,Intent intent) {
@@ -201,22 +239,39 @@ public class MainActivity extends Activity {
     }
 
 
+    private boolean isFirst(){
+        int versionCode = getVersionCode(this);
+
+        String sql = "select `isfirst` from `appglobal` where id = 1";
+        Cursor cursor = DBHelper.query(sql);
+        cursor.moveToFirst();
+
+        if(cursor.getCount() == 0){
+            sql = "insert into `appglobal`(`isfirst`) values(" + versionCode + ")";
+            DBHelper.execute(sql);
+            return true;
+        }
+
+        int isfirst = cursor.getInt(cursor.getColumnIndex("isfirst"));
+
+        if(isfirst == versionCode){
+            return false;
+        }else{
+            sql = "update `appglobal` set `isfirst` = " + versionCode + " where id = 1";
+            DBHelper.execute(sql);
+            return true;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        /*
-        versionCode = getVersionCode(this);
 
-        new Handler().postDelayed(new Thread() {
-            @Override
-            public void run() {
-                UpdateTask task = new UpdateTask();
-                task.execute();
-            }
-        }, 1000);
-*/
+        if(isFirst()) {
+            Intent intent = new Intent(this, GuideActivity.class);
+            startActivity(intent);
+        }
 
         api = WXAPIFactory.createWXAPI(this, Constants.APP_ID, true);
         setContentView(R.layout.activity_main);
@@ -241,6 +296,40 @@ public class MainActivity extends Activity {
                 Utils.getToken(myContext, false, msg);
             }
         });
+
+        Message msg = Message.obtain();
+        msg.what = 1002;
+        msg.obj = new String[]{"", ""};
+        myHandler.sendMessage(msg);
+        upgrade();
+    }
+
+
+    private void upgrade(){
+        versionCode = getVersionCode(this);
+
+        new Thread() {
+            public void run() {
+                try {
+                    String uri = "http://m.6renyou.com/app_service/get_android_version";
+                    HttpClient client = new DefaultHttpClient();
+                    HttpGet get = new HttpGet(uri);
+                    HttpResponse res = client.execute(get);
+                    String body = EntityUtils.toString(res.getEntity());
+                    JSONObject obj = new JSONObject(body);
+                    int code = obj.getInt("code");
+                    if(code > versionCode){
+                        Message msg = Message.obtain();
+                        msg.what = 1004;
+                        msg.obj = body;
+                        myHandler.sendMessage(msg);
+                    }
+                }catch(Exception e){
+                    Log.e("6renyou", e.getMessage());
+                }
+            }
+        }.start();
+
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent e){
@@ -279,108 +368,30 @@ public class MainActivity extends Activity {
         super.onResume();
     }
 
-/*
+
     private int getVersionCode(Context context) {
-        int _versionCode = 0;
+        int _versionCode = 1;
         try {
-            _versionCode = context.getPackageManager().getPackageInfo("com.liurenyou.im", 0).versionCode;
+            _versionCode = context.getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
         } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        return _versionCode;
-    }
-
-    @SuppressWarnings("UnnecessarySemicolon")
-    private class UpdateTask extends AsyncTask<Integer, Void, String> {
-        UpdateTask() {};
-
-        protected String doInBackground(Integer... _array) {
-            String result = bench.getVersionCode();
-            return result;
-        }
-
-        protected void onPostExecute(String result) {
-            if (result.length() == 0) {
-                Toast.makeText(MainActivity.this, R.string.network_fail, Toast.LENGTH_LONG).show();
-            } else {
-                try {
-                    JSONObject _result = new JSONObject(result);
-                    String _apiCode = _result.getString("apiCode");
-                    if (_apiCode.equals("10000")) {
-                        JSONObject _data = _result.getJSONObject("data");
-                        if (_data.getInt("versionCode") > versionCode) {
-                            final String _update_url = _data.getString("apkUrl");
-                            new AlertDialog.Builder(MainActivity.this)
-                                    .setTitle(getString(R.string.logo_str1))
-                                    .setMessage(getString(R.string.logo_str2))
-                                    .setPositiveButton(getString(R.string.logo_str3),
-                                            new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(
-                                                        DialogInterface dialog,
-                                                        int which) {
-                                                    MainActivity.this.UpdateApk(_update_url);
-                                                }
-                                            })
-                                    .setNegativeButton(
-                                            getString(R.string.logo_str4),
-                                            new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(
-                                                        DialogInterface dialog,
-                                                        int which) {
-                                                    dialog.dismiss();
-                                                    MainActivity.this
-                                                            .startActivity(new Intent(
-                                                                    MainActivity.this,
-                                                                    MainActivity.class));
-                                                    MainActivity.this.finish();
-                                                }
-                                            }).show();
-
-                        } else {
-                            java.lang.Thread.sleep(3000);
-                            MainActivity.this.startActivity(new Intent(
-                                    MainActivity.this, MainActivity.class));
-                            MainActivity.this.finish();
-                        }
-                    } else {
-                        // do nothing
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+            Log.e("6renyou", e.getMessage());
+        } finally {
+            return _versionCode;
         }
     }
 
     private int versionCode;
-    private Dialog dialog;
-    private ProgressBar progress;
 
     public void UpdateApk(final String url) {
-        AlertDialog.Builder _builder = new AlertDialog.Builder(this);
-        _builder.setTitle(getString(R.string.logo_str5));
-        final LayoutInflater _inflater = LayoutInflater.from(this);
-        @SuppressLint("InflateParams") View _view = _inflater.inflate(R.layout.activity_logo_update_progress, null);
-        progress = (ProgressBar) _view.findViewById(R.id.update_progress);
-        _builder.setView(_view);
-        dialog = _builder.create();
-        dialog.show();
-
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    if (Environment.getExternalStorageState().equals(
-                            Environment.MEDIA_MOUNTED)) {
-                        int _progress = 0;
+                    if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
                         File sdCard = Environment.getExternalStorageDirectory();
-                        String sdPath = sdCard.getAbsolutePath() + "/"
-                                + Constants.baseDir;
+                        String sdPath = sdCard.getAbsolutePath();
                         URL _url = new URL(url);
 
-                        HttpURLConnection conn = (HttpURLConnection) _url
-                                .openConnection();
+                        HttpURLConnection conn = (HttpURLConnection) _url.openConnection();
                         conn.connect();
                         int length = conn.getContentLength();
                         InputStream is = conn.getInputStream();
@@ -394,8 +405,6 @@ public class MainActivity extends Activity {
                             int _num = is.read(buf);
                             count += _num;
 
-                            _progress = (int) (((float) count / length) * 100);
-                            progress.setProgress(_progress);
                             if (_num <= 0) {
                                 break;
                             }
@@ -403,7 +412,7 @@ public class MainActivity extends Activity {
                         } while (true);
                         fos.close();
                         is.close();
-                        dialog.dismiss();
+
                         Intent _intent = new Intent(Intent.ACTION_VIEW);
                         _intent.setDataAndType(
                                 Uri.parse("file://" + apkFile.toString()),
@@ -412,13 +421,13 @@ public class MainActivity extends Activity {
                         MainActivity.this.finish();
                     }
                 } catch (MalformedURLException e) {
-                    e.printStackTrace();
+                    Log.e("6renyou", e.getMessage() + " , " + e.toString());
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.e("6renyou", e.getMessage() + " , " + e.toString());
                 }
             }
         }).start();
     }
-*/
+
 
 }

@@ -5,6 +5,10 @@ public class Constants {
     public static final String APP_ID = "wxe491497060c04047";
 
 	public static final String baseDir = "6renyou";
+
+	public static final String apkURL = "http://im2.6renyou.com/6renyou.apk";
+
+	public static final String homePage = "http://m.6renyou.com/android/index";
     
     public static class ShowMsgActivity {
 		public static final String STitle = "showmsg_title";
