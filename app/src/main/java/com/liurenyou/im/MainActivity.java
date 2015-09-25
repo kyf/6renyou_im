@@ -350,21 +350,25 @@ public class MainActivity extends Activity {
 
     public void onPause(){
         Utils.online = "off";
+        Log.e("6renyou", "status is " + Utils.online);
         super.onPause();
     }
 
     public void onStart(){
         Utils.online = "on";
+        Log.e("6renyou", "status is " + Utils.online);
         super.onStart();
     }
 
     public void onStop(){
         Utils.online = "off";
+        Log.e("6renyou", "status is " + Utils.online);
         super.onStop();
     }
 
     public void onResume(){
         Utils.online = "on";
+        Log.e("6renyou", "status is " + Utils.online);
         super.onResume();
     }
 
