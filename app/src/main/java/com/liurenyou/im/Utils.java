@@ -6,6 +6,7 @@ import java.util.List;
 import android.content.Context;
 import android.os.Message;
 import android.util.Log;
+import android.webkit.WebView;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -24,6 +25,13 @@ public class Utils {
     public static String deviceToken = "";
 
     public static String online = "off";//on, off
+
+    public static void calljs(WebView view, String fn){
+        if(view != null) {
+            view.loadUrl("javascript:remoteMsgCall." + fn + "();");
+        }
+    }
+
 
     public static void getToken(Context context, boolean status, String deviceToken){
         Message msg = Message.obtain();
