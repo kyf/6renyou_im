@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.os.Message;
 import android.util.Log;
 import android.webkit.WebView;
@@ -30,6 +31,20 @@ public class Utils {
         if(view != null) {
             view.loadUrl("javascript:remoteMsgCall." + fn + "();");
         }
+    }
+
+
+    public static void saveDeviceToken(String deviceToken){
+        String sql = "update `appglobal` set `deviceToken` = '" + deviceToken + "' where id = 1";
+        DBHelper.execute(sql);
+    }
+
+    public static String getDeviceToken(){
+        String sql = "select `deviceToken` from `appglobal` where id = 1";
+        Cursor cursor = DBHelper.query(sql);
+        cursor.moveToFirst();
+        if(cursor.getCount() == 0)return "";
+        return cursor.getString(cursor.getColumnIndex("deviceToken"));
     }
 
 

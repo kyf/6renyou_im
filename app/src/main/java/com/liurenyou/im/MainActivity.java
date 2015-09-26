@@ -102,7 +102,8 @@ public class MainActivity extends Activity {
                     settings.setSupportZoom(true);
                     settings.setBuiltInZoomControls(true);
                     settings.setJavaScriptCanOpenWindowsAutomatically(true);
-                    settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+                    //settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+                    settings.setCacheMode(WebSettings.LOAD_DEFAULT);
                     settings.setDomStorageEnabled(true);
                     settings.setDatabaseEnabled(true);
 
@@ -267,7 +268,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
+        Utils.deviceToken = Utils.getDeviceToken();
         if(isFirst()) {
             Intent intent = new Intent(this, GuideActivity.class);
             startActivity(intent);
@@ -288,6 +289,7 @@ public class MainActivity extends Activity {
             public void onSuccess(Object data, int flag) {
                 Log.e("TPush", "注册成功，设备token为：" + data);
                 Utils.getToken(myContext, true, data.toString());
+                Utils.saveDeviceToken(data.toString());
             }
 
             @Override
@@ -312,13 +314,14 @@ public class MainActivity extends Activity {
         new Thread() {
             public void run() {
                 try {
-                    String uri = "http://m.6renyou.com/app_service/get_android_version";
+                    String uri = Constants.upgradeURL;
                     HttpClient client = new DefaultHttpClient();
                     HttpGet get = new HttpGet(uri);
                     HttpResponse res = client.execute(get);
                     String body = EntityUtils.toString(res.getEntity());
                     JSONObject obj = new JSONObject(body);
                     int code = obj.getInt("code");
+
                     if(code > versionCode){
                         Message msg = Message.obtain();
                         msg.what = 1004;
@@ -337,13 +340,16 @@ public class MainActivity extends Activity {
         if(keyCode == KeyEvent.KEYCODE_BACK){
             if(mainView.canGoBack()){
                 mainView.goBack();
+                return true;
             }else{
+                /*
                 Intent home = new Intent(Intent.ACTION_MAIN);
                 home.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 home.addCategory(Intent.CATEGORY_HOME);
                 startActivity(home);
+                */
             }
-            return true;
+            //return true;
         }
 
         return super.onKeyDown(keyCode, e);

@@ -8,6 +8,8 @@ public class Constants {
 
 	public static final String apkURL = "http://im2.6renyou.com/6renyou.apk";
 
+	public static final String upgradeURL = "http://m.6renyou.com/app_service/get_android_version";
+
 	public static final String homePage = "http://m.6renyou.com/android/index";
     
     public static class ShowMsgActivity {
