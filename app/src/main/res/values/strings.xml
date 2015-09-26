@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">6人游</string>
+    <string name="reload">重新加载</string>
+    <string name="not_wifi_tip">请检查您的手机是否联网，点击按钮重新加载</string>
     <string name="app_back">返回</string>
     <string name="app_ok">确定</string>
     <string name="app_cancel">取消</string>

@@ -34,6 +34,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -83,6 +84,10 @@ public class MainActivity extends Activity {
     private WebView mainView;
 
     private IWXAPI api;
+
+    private LinearLayout ErrorPanel;
+
+    private Button ReloadBt;
 
     private Handler myHandler = new Handler(){
 
@@ -180,7 +185,10 @@ public class MainActivity extends Activity {
 
                         @Override
                         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                            view.loadUrl("file:///android_asset/www/error.html");
+                            //view.loadUrl("file:///android_asset/www/error.html");
+                            view.setVisibility(View.GONE);
+                            ErrorPanel.setVisibility(View.VISIBLE);
+
                         }
 
 
@@ -278,15 +286,25 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        setContentView(R.layout.activity_main);
         Utils.deviceToken = Utils.getDeviceToken();
         if(isFirst()) {
             Intent intent = new Intent(this, GuideActivity.class);
             startActivity(intent);
         }
 
+        ErrorPanel = (LinearLayout) findViewById(R.id.ErrorPanel);
+        ReloadBt = (Button) findViewById(R.id.ReloadBt);
+        ReloadBt.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                mainView.setVisibility(View.VISIBLE);
+                mainView.loadUrl(Constants.homePage);
+                ErrorPanel.setVisibility(View.GONE);
+            }
+        });
         api = WXAPIFactory.createWXAPI(this, Constants.APP_ID, true);
-        setContentView(R.layout.activity_main);
+
         ((MyApplication)this.getApplicationContext()).setHandler(myHandler);
         myContext = this;
         pd = ProgressDialog.show(this, "", "connecting ...", true, true);
@@ -349,7 +367,7 @@ public class MainActivity extends Activity {
 
     public boolean onKeyDown(int keyCode, KeyEvent e){
         if(keyCode == KeyEvent.KEYCODE_BACK){
-            if(mainView.canGoBack()){
+            if(mainView.canGoBack() && mainView.getVisibility() == View.VISIBLE && !mainView.getUrl().equals(Constants.homePage)){
                 mainView.goBack();
                 return true;
             }else{
