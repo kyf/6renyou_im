@@ -28,6 +28,9 @@ import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -104,6 +107,7 @@ public class MainActivity extends Activity {
                     settings.setJavaScriptCanOpenWindowsAutomatically(true);
                     //settings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
                     settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+                    settings.setDefaultTextEncodingName("UTF-8");
                     settings.setDomStorageEnabled(true);
                     settings.setDatabaseEnabled(true);
 
@@ -172,7 +176,14 @@ public class MainActivity extends Activity {
                         }
                     });
 
-                    mainView.setWebViewClient(new WebViewClient() {
+                    mainView.setWebViewClient(new WebViewClient(){
+
+                        @Override
+                        public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                            view.loadUrl("file:///android_asset/www/error.html");
+                        }
+
+
                         @Override
                         public boolean shouldOverrideUrlLoading(WebView view, String url) {
                             view.loadUrl(url);
