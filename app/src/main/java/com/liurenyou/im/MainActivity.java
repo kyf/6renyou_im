@@ -302,6 +302,7 @@ public class MainActivity extends Activity {
         msg.obj = new String[]{"", ""};
         myHandler.sendMessage(msg);
         upgrade();
+
     }
 
 

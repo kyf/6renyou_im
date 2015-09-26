@@ -3,6 +3,7 @@ package com.liurenyou.im;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -16,6 +17,10 @@ import com.tencent.mm.sdk.openapi.WXMediaMessage;
 import com.tencent.mm.sdk.openapi.WXTextObject;
 import com.tencent.mm.sdk.openapi.WXWebpageObject;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
 
 /**
@@ -262,7 +267,7 @@ public class WeixinShareManager {
 
     private void sharePicture1(final int shareType, final ShareContent shareContent) {
         final String url = shareContent.getURL();
-        final Handler handler = new Handler(){
+        final Handler handler = new Handler() {
             @Override
             public void handleMessage(Message msg1) {
 
@@ -270,7 +275,7 @@ public class WeixinShareManager {
                 WXImageObject imgObj;
                 WXMediaMessage msg = new WXMediaMessage();
                 String transTag = "img";
-                imgObj = new WXImageObject();
+                imgObj = new WXImageObject(bmp);
                 imgObj.imageUrl = url;
 
                 msg.mediaObject = imgObj;
@@ -303,6 +308,7 @@ public class WeixinShareManager {
                 }
             }
         }).start();
+
     }
 
 
