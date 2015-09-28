@@ -99,6 +99,17 @@
             </intent-filter>
         </service>
 
+        <!-- 【可选】APP实现的Receiver，用于接收消息透传和操作结果的回调，请根据需要添加 -->
+        <!-- YOUR_PACKAGE_PATH.CustomPushReceiver需要改为自己的Receiver： -->
+
+        <receiver android:name="com.liurenyou.im.receiver.MessageReceiver" >
+            <intent-filter>
+                <action android:name="com.tencent.android.tpush.action.PUSH_MESSAGE" />
+                <action android:name="com.tencent.android.tpush.action.FEEDBACK" />
+            </intent-filter>
+        </receiver>
+
+
         <!-- 【必须】 请修改为APP的AccessId，“21”开头的10位数字，中间没空格 -->
         <meta-data
             android:name="XG_V2_ACCESS_ID"
@@ -107,6 +118,10 @@
         <meta-data
             android:name="XG_V2_ACCESS_KEY"
             android:value="AV8W8RLL593K" />
+
+
+        <meta-data android:value="5608bbede0f55a42ca000d2b" android:name="UMENG_APPKEY"></meta-data>
+        <meta-data android:value="xiaomi" android:name="UMENG_CHANNEL"/>
 
         <activity
             android:name=".ShowActivity"

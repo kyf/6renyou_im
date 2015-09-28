@@ -48,6 +48,7 @@ import com.tencent.mm.sdk.openapi.SendMessageToWX;
 import com.tencent.mm.sdk.openapi.WXAPIFactory;
 import com.tencent.mm.sdk.openapi.WXMediaMessage;
 import com.tencent.mm.sdk.openapi.WXTextObject;
+import com.umeng.analytics.MobclickAgent;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -187,6 +188,7 @@ public class MainActivity extends Activity {
                         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
                             //view.loadUrl("file:///android_asset/www/error.html");
                             view.setVisibility(View.GONE);
+                            view.loadData("", "text/html", "UTF-8");
                             ErrorPanel.setVisibility(View.VISIBLE);
 
                         }
@@ -388,6 +390,7 @@ public class MainActivity extends Activity {
         Utils.online = "off";
         Utils.calljs(mainView, "stop");
         super.onPause();
+        MobclickAgent.onResume(this);
     }
 
     public void onStart(){
@@ -406,6 +409,7 @@ public class MainActivity extends Activity {
         Utils.online = "on";
         Utils.calljs(mainView, "start");
         super.onResume();
+        MobclickAgent.onResume(this);
     }
 
 

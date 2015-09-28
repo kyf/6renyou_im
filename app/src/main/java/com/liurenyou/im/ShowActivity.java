@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.Bundle;
 
+import com.umeng.analytics.MobclickAgent;
+
 public class ShowActivity extends Activity {
 
     @Override
@@ -22,4 +24,16 @@ public class ShowActivity extends Activity {
         }, 1000);
     }
 
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        MobclickAgent.onResume(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        MobclickAgent.onPause(this);
+    }
 }
