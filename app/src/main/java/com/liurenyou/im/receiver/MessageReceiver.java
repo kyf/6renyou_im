@@ -38,6 +38,7 @@ public class MessageReceiver extends XGPushBaseReceiver {
 			return;
 		}
 
+		/*
 		NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
 		PendingIntent pendingIntent3 = PendingIntent.getActivity(context, 0,
@@ -52,6 +53,7 @@ public class MessageReceiver extends XGPushBaseReceiver {
 
 		notify3.flags |= Notification.FLAG_AUTO_CANCEL;
 		nm.notify(1, notify3);
+		*/
 	}
 
 	@Override
