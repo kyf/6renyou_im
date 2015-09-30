@@ -41,6 +41,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 
+import com.liurenyou.im.widget.MyLoading;
 import com.tencent.android.tpush.XGIOperateCallback;
 import com.tencent.android.tpush.XGPushManager;
 import com.tencent.mm.sdk.openapi.IWXAPI;
@@ -78,7 +79,7 @@ import java.util.TimeZone;
 
 public class MainActivity extends Activity {
 
-    private ProgressDialog pd;
+    private MyLoading pd;
 
     private Context myContext;
 
@@ -309,8 +310,10 @@ public class MainActivity extends Activity {
 
         ((MyApplication)this.getApplicationContext()).setHandler(myHandler);
         myContext = this;
-        pd = ProgressDialog.show(this, "", "connecting ...", true, true);
-
+        pd = new MyLoading(this);//ProgressDialog.show(this, "", "connecting ...", true, true);
+        pd.setCanceledOnTouchOutside(false);
+        pd.setContent("正在加载...");
+        pd.show();
 
         api.registerApp(Constants.APP_ID);
 

@@ -2,6 +2,7 @@ package com.liurenyou.im;
 
 import android.content.Context;
 import android.os.Build;
+import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
@@ -71,6 +72,24 @@ public class JavaScriptMethods {
     }
 
     @JavascriptInterface
+    public void sharePicStrToFriend(String content){
+        content = content.replace("data:image/png;base64,", "");
+        WeixinShareManager wsm = WeixinShareManager.getInstance(mContext);
+        wsm.shareByWeixin(wsm.new ShareContentPic(content, true),
+                WeixinShareManager.WEIXIN_SHARE_TYPE_TALK);
+    }
+
+    @JavascriptInterface
+    public void sharePicStrToCircle(String content){
+        content = content.replace("data:image/png;base64,", "");
+        WeixinShareManager wsm = WeixinShareManager.getInstance(mContext);
+        wsm.shareByWeixin(wsm.new ShareContentPic(content, true),
+                WeixinShareManager.WEIXIN_SHARE_TYPE_FRENDS);
+    }
+
+
+
+    @JavascriptInterface
     public void shareWebToFriend(String title, String content, String url){
         WeixinShareManager wsm = WeixinShareManager.getInstance(mContext);
         wsm.shareByWeixin(wsm.new ShareContentWebpage(title, content, url, R.mipmap.ic_launcher),
@@ -124,6 +143,7 @@ public class JavaScriptMethods {
         JSONObject json = new JSONObject(info);
         return json.toString();
     }
+
 
 }
 

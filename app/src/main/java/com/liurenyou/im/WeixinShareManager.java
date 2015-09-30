@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -145,6 +146,8 @@ public class WeixinShareManager {
 
         private String url;
 
+        private String content;
+
         public ShareContentPic(int picResource) {
             this.picResource = picResource;
         }
@@ -153,9 +156,13 @@ public class WeixinShareManager {
             this.url = picResource;
         }
 
+        public ShareContentPic(String content, boolean flag) {
+            this.content = content;
+        }
+
         @Override
         protected String getContent() {
-            return null;
+            return this.content;
         }
 
         @Override
@@ -247,6 +254,11 @@ public class WeixinShareManager {
             return;
         }
 
+        if (shareContent.getContent() != null) {
+            sharePicture2(shareType, shareContent);
+            return;
+        }
+
         Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), shareContent.getPicResource());
         WXImageObject imgObj = new WXImageObject(bmp);
 
@@ -254,6 +266,26 @@ public class WeixinShareManager {
         msg.mediaObject = imgObj;
 
         Bitmap thumbBmp = Bitmap.createScaledBitmap(bmp, THUMB_SIZE, THUMB_SIZE, true);
+        bmp.recycle();
+        msg.thumbData = WeixinShareUtil.bmpToByteArray(thumbBmp, true);
+
+        SendMessageToWX.Req req = new SendMessageToWX.Req();
+        req.transaction = buildTransaction("imgshareappdata");
+        req.message = msg;
+        req.scene = shareType;
+        wxApi.sendReq(req);
+    }
+
+    private void sharePicture2(int shareType, ShareContent shareContent) {
+        byte[] buf = Base64.decode(shareContent.getContent(), Base64.DEFAULT);
+        Bitmap bmp = BitmapFactory.decodeByteArray(buf, 0,buf.length);
+        //Bitmap bmp = BitmapFactory.decodeResource(context.getResources(), shareContent.getPicResource());
+        WXImageObject imgObj = new WXImageObject(bmp);
+
+        WXMediaMessage msg = new WXMediaMessage();
+        msg.mediaObject = imgObj;
+
+        Bitmap thumbBmp = Bitmap.createScaledBitmap(bmp, 120,120, true);//THUMB_SIZE, THUMB_SIZE, true);
         bmp.recycle();
         msg.thumbData = WeixinShareUtil.bmpToByteArray(thumbBmp, true);
 
