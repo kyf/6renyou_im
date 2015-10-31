@@ -22,4 +22,5 @@
     <color name="actionsheet_gray">#8F8F8F</color>
 
     <color name="background">#eeeeee</color>
+    <color name="appbase">#13ab50</color>
 </resources>

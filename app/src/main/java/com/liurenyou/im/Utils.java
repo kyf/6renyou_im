@@ -3,8 +3,12 @@ package com.liurenyou.im;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Message;
 import android.util.Log;
 import android.webkit.WebView;
@@ -30,6 +34,19 @@ public class Utils {
     public static void calljs(WebView view, String fn){
         if(view != null) {
             view.loadUrl("javascript:remoteMsgCall." + fn + "();");
+        }
+    }
+
+
+    public static boolean checkBlueToothState(){
+        BluetoothAdapter ba = BluetoothAdapter.getDefaultAdapter();
+
+        if (ba == null){
+           return false;
+        }else if(ba.isEnabled()){
+            return true;
+        } else {
+            return false;
         }
     }
 

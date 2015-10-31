@@ -128,9 +128,17 @@
     <string name="show_from_wx_tip">这个界面用于显示微信向第三方app请求显示的信息</string>
     <string name="title_activity_wxentry">WXEntryActivity</string>
 
-    <string name="hello_world">Hello world!</string>
+    <string name="travelcard_title">6人游智能行李牌</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_guide">GuideActivity</string>
     <string name="title_activity_show">ShowActivity</string>
-    
+    <string name="title_activity_show_travel_card">ShowTravelCardActivity</string>
+    <string name="bind_travelcard_text">点击绑定</string>
+    <string name="bind_travelcard_text_ok">确定绑定</string>
+    <string name="re_scan_travelcard_text">重新扫描</string>
+    <string name="title_activity_base">BaseActivity</string>
+
+
+    <string name="bind_success_text">您的行李牌与手机绑定成功！</string>
+    <string name="settings">设置</string>
 </resources>

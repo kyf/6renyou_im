@@ -20,6 +20,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -41,6 +42,8 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 
+import com.ebudiu.budiu.sdk.OnDeviceListener;
+import com.ebudiu.budiu.sdk.SDKAPI;
 import com.liurenyou.im.widget.MyLoading;
 import com.tencent.android.tpush.XGIOperateCallback;
 import com.tencent.android.tpush.XGPushManager;
@@ -243,6 +246,8 @@ public class MainActivity extends Activity {
     private ValueCallback<Uri> mUploadMessage1;
     private final static int FILECHOOSER_RESULTCODE = 1;
 
+    private ArrayList<String> list = new ArrayList<>();
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode,Intent intent) {
 
@@ -284,6 +289,93 @@ public class MainActivity extends Activity {
             DBHelper.execute(sql);
             return true;
         }
+    }
+
+    //budiu sdk setting
+    private void budiuSetting(){
+        if(!Utils.checkBlueToothState()){
+            Toast.makeText(this, "请先开启蓝牙", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 设置回调监听
+        SDKAPI.setDeviceListener(new OnDeviceListener() {
+            @Override
+            public boolean isAutoConnect(String mac) {
+                // 上层判断是否连接某个设备
+                if (list != null) {
+                    for (String cur_mac : list) {
+                        if (!TextUtils.isEmpty(cur_mac) && cur_mac.equalsIgnoreCase(mac))
+                            return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public boolean isBoundDevice(String mac) {
+                // 上层判断某个设备是否已绑定
+                if (list != null) {
+                    for (String cur_mac : list) {
+                        if (!TextUtils.isEmpty(cur_mac) && cur_mac.equalsIgnoreCase(mac))
+                            return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
+            public void deviceDiscovery(String mac, double distance) {
+                if (list != null) {
+                    for (String cur_mac : list) {
+                        if (!TextUtils.isEmpty(cur_mac) && cur_mac.equalsIgnoreCase(mac))
+                            return;
+                    }
+                    list.add(mac);
+                }
+                updateResult(mac + " discovered! distance ===> " + String.valueOf(distance));
+            }
+
+            @Override
+            public void devicePower(String mac, int power) {
+                updateResult(mac + " current power ===> " + String.valueOf(power));
+            }
+
+            @Override
+            public void deviceDistance(String mac, double distance) {
+                updateResult(mac + " current distance ===> " + String.valueOf(distance));
+            }
+
+            @Override
+            public void deviceConnected(String mac) {
+                updateResult(mac + "===> connected!");
+            }
+
+            @Override
+            public void deviceDisconnect(String mac) {
+                updateResult(mac + "===> disconnect!");
+            }
+        });
+    }
+
+    private void startScan() {
+        int ret = SDKAPI.startScanDevice();
+        if (ret != SDKAPI.API_ERROR) {
+            if (ret != SDKAPI.API_SUCCESS) {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        startScan();
+                    }
+                }, 1000);
+            } else {
+                //updateResult("start scan!");
+            }
+        }
+    }
+
+    private void updateResult(String content){
+        Toast.makeText(this, content, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -339,6 +431,7 @@ public class MainActivity extends Activity {
         myHandler.sendMessage(msg);
         upgrade();
 
+        budiuSetting();
     }
 
 
@@ -413,6 +506,7 @@ public class MainActivity extends Activity {
         Utils.calljs(mainView, "start");
         super.onResume();
         MobclickAgent.onResume(this);
+        startScan();
     }
 
 
