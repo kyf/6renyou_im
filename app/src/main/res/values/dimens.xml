@@ -22,5 +22,6 @@
     <dimen name="bind_travelcard_margin_top">40dp</dimen>
     <dimen name="bind_travelcard_margin_bottom">60dp</dimen>
     <dimen name="button_size">16sp</dimen>
-    <dimen name="division_margin">8dp</dimen>
+    <dimen name="division_margin">5dp</dimen>
+    <dimen name="setting_height">30dp</dimen>
 </resources>
