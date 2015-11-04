@@ -1,6 +1,7 @@
 package com.liurenyou.im;
 
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -9,6 +10,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,6 +30,8 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
     private TextView showLabel;
 
     private Button reScanBt, confirmBindBt;
+
+    private ImageView scan_success_image;
 
     private static final int SCAN_INTERVAL = 5;
 
@@ -52,6 +56,11 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
                     Intent intent = new Intent(ScanTravelCardActivity.this, BindTravelCardActivity.class);
                     intent.putExtra("mac_addr", macAddr);
                     startActivity(intent);
+                    finish();
+                    break;
+                }
+                case R.id.gobackbt:{
+                    finish();
                     break;
                 }
             }
@@ -63,10 +72,11 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
         public void handleMessage(Message msg){
             switch(msg.what){
                 case 1001:{
-                    showLabel.setText("找到设备:" + macAddr);
+                    showLabel.setText(getResources().getString(R.string.scan_success_text));
                     myLoading.dismiss();
                     reScanBt.setVisibility(View.VISIBLE);
                     confirmBindBt.setVisibility(View.VISIBLE);
+                    scan_success_image.setVisibility(View.VISIBLE);
                     BTSScanAPI.doConnectDevice(macAddr);
                     break;
                 }
@@ -91,6 +101,7 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
         showLabel = (TextView) findViewById(R.id.show_label);
         reScanBt = (Button) findViewById(R.id.rescanbt);
         confirmBindBt = (Button) findViewById(R.id.confirmbindbt);
+        scan_success_image = (ImageView) findViewById(R.id.scan_success_image);
 
         reScanBt.setOnClickListener(clickListener);
         confirmBindBt.setOnClickListener(clickListener);
@@ -98,6 +109,8 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
         myLoading = new MyLoading(this);
         myLoading.setContent("正在扫描设备...");
         myLoading.setCanceledOnTouchOutside(false);
+        ImageView gobackbt = (ImageView) findViewById(R.id.gobackbt);
+        gobackbt.setOnClickListener(clickListener);
 
         BTSScanAPI.setScanListener(this);
 
@@ -107,13 +120,30 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
         }
 
         if(!SDKAPI.isBluetoothOn(this)){
-            Toast.makeText(this, "请先开启蓝牙", Toast.LENGTH_SHORT).show();
-            reScanBt.setVisibility(View.VISIBLE);
+            Intent mIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(mIntent, 1);
             return;
         }
 
         myLoading.show();
         BTSScanAPI.scanStart(SCAN_INTERVAL);
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if (resultCode == RESULT_OK) {
+                Toast.makeText(this, "蓝牙已经开启", Toast.LENGTH_SHORT).show();
+                myLoading.show();
+                BTSScanAPI.scanStart(SCAN_INTERVAL);
+            } else if (resultCode == RESULT_CANCELED) {
+                Toast.makeText(this, "不允许蓝牙开启", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }
+
     }
 
 

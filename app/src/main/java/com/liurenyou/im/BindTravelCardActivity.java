@@ -7,10 +7,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.View;
+import android.widget.ImageView;
 
 import com.ebudiu.budiu.sdk.BTSScanAPI;
 
-public class BindTravelCardActivity extends BaseActivity {
+public class BindTravelCardActivity extends BaseActivity implements View.OnClickListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +34,23 @@ public class BindTravelCardActivity extends BaseActivity {
                 .setContentIntent(intent1)
                 .getNotification();
         nm.notify(1, notify1);
+
+        initView();
     }
 
+
+    public void initView(){
+        ImageView gobackbt = (ImageView) findViewById(R.id.gobackbt);
+        gobackbt.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View view){
+        switch(view.getId()){
+            case R.id.gobackbt:{
+                finish();
+                break;
+            }
+        }
+    }
 }

@@ -12,15 +12,71 @@
     android:gravity="center_horizontal"
     tools:context="com.liurenyou.im.ScanTravelCardActivity">
 
-    <TextView
-        android:text="@string/travelcard_title"
+    <View
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:gravity="center"
+        android:layout_height="@dimen/statusbar_height"
         android:background="@color/appbase"
-        android:textColor="@color/white"
-        android:textSize="@dimen/title_size"
         />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/titlebar_height"
+        android:background="@color/appbase"
+        >
+
+        <TextView
+            android:text="@string/my_travelcard_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:textSize="@dimen/title_size"
+            android:layout_centerInParent="true"
+            />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/leftarrow"
+            android:scaleType="fitXY"
+            android:layout_marginLeft="@dimen/goback_left_margin"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:id="@+id/gobackbt"
+            />
+
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:layout_marginTop="@dimen/bind_travelcard_margin_top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="78dp"
+            android:layout_height="130dp"
+            android:src="@mipmap/iphone_left"
+            android:scaleType="fitXY"
+            android:layout_centerVertical="true"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="30dp"
+            />
+
+        <com.liurenyou.im.widget.SignalView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerInParent="true"
+            />
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="120dp"
+            android:src="@mipmap/icon_right"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="20dp"
+            />
+
+    </RelativeLayout>
 
 
         <TextView
@@ -28,14 +84,40 @@
             android:layout_height="wrap_content"
             android:text="@string/bind_success_text"
             android:layout_marginTop="@dimen/bind_travelcard_margin_top"
-            android:layout_marginBottom="@dimen/my_activity_horizontal_margin"
+            android:layout_marginBottom="@dimen/bind_travelcard_margin_bottom"
             />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:layout_marginTop="@dimen/bind_travelcard_margin_top"
         >
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/bind_travelcard_margin_top"
+            android:layout_marginBottom="@dimen/my_activity_horizontal_margin"
+            >
+            <ImageView
+                android:layout_width="19dp"
+                android:layout_height="16dp"
+                android:src="@mipmap/star"
+                android:scaleType="fitXY"
+                android:layout_marginLeft="@dimen/my_activity_horizontal_margin"
+                android:layout_gravity="center_vertical"
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="以下情况提醒"
+                android:layout_marginLeft="10dp"
+                android:textSize="16sp"
+                android:textColor="@color/appbase"
+                android:layout_gravity="center_vertical"
+                />
+        </LinearLayout>
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -50,7 +132,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="防丢(断开连接时)"
-                android:textSize="@dimen/button_size"
+                android:textSize="16sp"
                 />
             </LinearLayout>
 
@@ -70,7 +152,7 @@
 
         <View
             android:layout_width="match_parent"
-            android:layout_height="1px"
+            android:layout_height="0px"
             android:background="@color/alertdialog_line"
             android:layout_marginTop="@dimen/division_margin"
             android:layout_marginBottom="@dimen/division_margin"
@@ -89,7 +171,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="等行李(重新连接时)"
-                    android:textSize="@dimen/button_size"
+                    android:textSize="16sp"
                     />
             </LinearLayout>
 

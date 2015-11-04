@@ -21,7 +21,7 @@
         >
 
         <TextView
-            android:text="@string/travelcard_title"
+            android:text="@string/bind_travelcard_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/white"
@@ -38,9 +38,23 @@
             android:layout_marginLeft="@dimen/goback_left_margin"
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
+            android:id="@+id/gobackbt"
             />
 
     </RelativeLayout>
+
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@mipmap/icon_right"
+        android:scaleType="fitXY"
+        android:visibility="invisible"
+        android:id="@+id/scan_success_image"
+        android:layout_marginTop="@dimen/bind_travelcard_margin_top"
+        android:layout_marginBottom="@dimen/bind_travelcard_margin_bottom"
+        />
+
 
     <TextView
         android:layout_width="wrap_content"
@@ -54,26 +68,26 @@
         android:id="@+id/confirmbindbt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/appbase"
+        android:background="@drawable/el"
         android:textColor="@color/white"
         android:layout_marginLeft="@dimen/my_activity_horizontal_margin"
         android:layout_marginRight="@dimen/my_activity_horizontal_margin"
         android:layout_marginBottom="@dimen/my_activity_horizontal_margin"
         android:text="@string/bind_travelcard_text_ok"
         android:textSize="@dimen/button_size"
-        android:visibility="gone"
+        android:visibility="invisible"
         />
 
     <Button
         android:id="@+id/rescanbt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/appbase"
+        android:background="@drawable/bt_el"
         android:textColor="@color/white"
         android:layout_marginLeft="@dimen/my_activity_horizontal_margin"
         android:layout_marginRight="@dimen/my_activity_horizontal_margin"
         android:text="@string/re_scan_travelcard_text"
         android:textSize="@dimen/button_size"
-        android:visibility="gone"
+        android:visibility="invisible"
         />
 </LinearLayout>

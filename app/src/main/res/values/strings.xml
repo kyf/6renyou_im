@@ -129,6 +129,8 @@
     <string name="title_activity_wxentry">WXEntryActivity</string>
 
     <string name="travelcard_title">6人游智能行李牌</string>
+    <string name="bind_travelcard_title">绑定智能行李牌</string>
+    <string name="my_travelcard_title">我的智能行李牌</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_guide">GuideActivity</string>
     <string name="title_activity_show">ShowActivity</string>
@@ -143,4 +145,5 @@
     <string name="settings">设置</string>
     <string name="no_equipment">还没有智能行李牌?</string>
     <string name="online_buy">在线购买</string>
+    <string name="scan_success_text">6人游智能行李牌上的灯是否在闪烁?</string>
 </resources>
