@@ -23,4 +23,6 @@
 
     <color name="background">#eeeeee</color>
     <color name="appbase">#13ab50</color>
+    <color name="btyellow">#CFD706</color>
+    <color name="tiptext">#9A9A9A</color>
 </resources>

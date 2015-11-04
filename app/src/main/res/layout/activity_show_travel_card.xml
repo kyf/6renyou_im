@@ -9,34 +9,81 @@
     android:gravity="center_horizontal"
     tools:context="com.liurenyou.im.ShowTravelCardActivity">
 
-    <TextView
-        android:text="@string/travelcard_title"
+    <View
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:gravity="center"
+        android:layout_height="@dimen/statusbar_height"
         android:background="@color/appbase"
-        android:textColor="@color/white"
-        android:textSize="@dimen/title_size"
         />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/titlebar_height"
+        android:background="@color/appbase"
+        >
+
+        <TextView
+            android:text="@string/travelcard_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:textSize="@dimen/title_size"
+            android:layout_centerInParent="true"
+            android:id="@+id/show_travel_card_title"
+            />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/leftarrow"
+            android:scaleType="fitXY"
+            android:layout_marginLeft="@dimen/goback_left_margin"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            />
+
+    </RelativeLayout>
+
+
 
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="@dimen/bindbt_width"
+        android:layout_height="@dimen/bindbt_height"
         android:src="@mipmap/bindtravelcard"
         android:scaleType="fitXY"
         android:layout_marginTop="@dimen/bind_travelcard_margin_top"
-        android:layout_marginBottom="@dimen/bind_travelcard_margin_bottom"
+        android:layout_marginBottom="@dimen/my_activity_horizontal_margin"
+        android:id="@+id/addtravelcardbt"
         />
 
-    <Button
-        android:id="@+id/addtravelcardbt"
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/appbase"
+        android:text="@string/bind_travelcard_text"
+        android:textColor="@color/tiptext"
+        android:textSize="@dimen/button_size"
+        android:gravity="center"
+        />
+
+
+
+    <TextView
+        android:layout_marginTop="@dimen/bind_travelcard_margin_bottom"
+        android:layout_marginBottom="@dimen/list_item_margin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/no_equipment"
+        android:textColor="@color/tiptext"
+        android:textSize="@dimen/button_size"
+        android:gravity="center"
+        />
+    <Button
+        android:id="@+id/buybt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/el"
         android:textColor="@color/white"
         android:layout_marginLeft="@dimen/my_activity_horizontal_margin"
         android:layout_marginRight="@dimen/my_activity_horizontal_margin"
-        android:text="@string/bind_travelcard_text"
+        android:text="@string/online_buy"
         android:textSize="@dimen/button_size"
         />
 </LinearLayout>

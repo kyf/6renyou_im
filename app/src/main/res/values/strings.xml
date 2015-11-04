@@ -141,4 +141,6 @@
 
     <string name="bind_success_text">您的行李牌与手机绑定成功！</string>
     <string name="settings">设置</string>
+    <string name="no_equipment">还没有智能行李牌?</string>
+    <string name="online_buy">在线购买</string>
 </resources>

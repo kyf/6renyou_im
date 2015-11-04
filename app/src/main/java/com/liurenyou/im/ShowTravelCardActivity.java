@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 public class ShowTravelCardActivity extends BaseActivity implements View.OnClickListener {
 
@@ -16,8 +18,10 @@ public class ShowTravelCardActivity extends BaseActivity implements View.OnClick
     }
 
     private void initView(){
-        Button bt = (Button) findViewById(R.id.addtravelcardbt);
+        ImageView bt = (ImageView) findViewById(R.id.addtravelcardbt);
+        Button buybt = (Button) findViewById(R.id.buybt);
         bt.setOnClickListener(this);
+        buybt.setOnClickListener(this);
     }
 
     @Override
@@ -26,6 +30,11 @@ public class ShowTravelCardActivity extends BaseActivity implements View.OnClick
             case R.id.addtravelcardbt:{
                 Intent intent = new Intent(this, ScanTravelCardActivity.class);
                 startActivity(intent);
+                break;
+            }
+            case R.id.buybt:{
+                Toast.makeText(this, "暂未开放购买", Toast.LENGTH_SHORT).show();
+                break;
             }
         }
     }
