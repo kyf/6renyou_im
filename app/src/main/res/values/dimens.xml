@@ -22,6 +22,7 @@
     <dimen name="bind_travelcard_margin_top">40dp</dimen>
     <dimen name="bind_travelcard_margin_bottom">60dp</dimen>
     <dimen name="button_size">16sp</dimen>
+<<<<<<< HEAD
     <dimen name="division_margin">8dp</dimen>
 
     <dimen name="statusbar_height">22dp</dimen>
@@ -29,4 +30,8 @@
     <dimen name="goback_left_margin">10dp</dimen>
     <dimen name="bindbt_width">180dp</dimen>
     <dimen name="bindbt_height">240dp</dimen>
+=======
+    <dimen name="division_margin">5dp</dimen>
+    <dimen name="setting_height">30dp</dimen>
+>>>>>>> df18629402d93252009a610f77a8d5448558f14f
 </resources>

@@ -1,5 +1,6 @@
 package com.liurenyou.im;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -9,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ebudiu.budiu.sdk.BTSScanAPI;
 import com.ebudiu.budiu.sdk.SDKAPI;
@@ -34,6 +36,11 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
         public void onClick(View view){
             switch(view.getId()){
                 case R.id.rescanbt:{
+                    if(!SDKAPI.isBluetoothOn(ScanTravelCardActivity.this)){
+                        Toast.makeText(ScanTravelCardActivity.this, "请先开启蓝牙", Toast.LENGTH_SHORT).show();
+                        reScanBt.setVisibility(View.VISIBLE);
+                        return;
+                    }
                     if(!TextUtils.isEmpty(macAddr)) {
                         SDKAPI.disconnectDevice(macAddr);
                     }
@@ -81,10 +88,6 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
     }
 
     private void initView(){
-        myLoading = new MyLoading(this);
-        myLoading.setContent("正在扫描设备...");
-        myLoading.setCanceledOnTouchOutside(false);
-        myLoading.show();
         showLabel = (TextView) findViewById(R.id.show_label);
         reScanBt = (Button) findViewById(R.id.rescanbt);
         confirmBindBt = (Button) findViewById(R.id.confirmbindbt);
@@ -92,8 +95,25 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
         reScanBt.setOnClickListener(clickListener);
         confirmBindBt.setOnClickListener(clickListener);
 
+        myLoading = new MyLoading(this);
+        myLoading.setContent("正在扫描设备...");
+        myLoading.setCanceledOnTouchOutside(false);
+
         BTSScanAPI.setScanListener(this);
-        BTSScanAPI.scanStart(5);
+
+        if(!SDKAPI.isBluetoothLeSupported(this)){
+            Toast.makeText(this, "您的设备不支持蓝牙", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if(!SDKAPI.isBluetoothOn(this)){
+            Toast.makeText(this, "请先开启蓝牙", Toast.LENGTH_SHORT).show();
+            reScanBt.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        myLoading.show();
+        BTSScanAPI.scanStart(SCAN_INTERVAL);
     }
 
 
