@@ -21,20 +21,20 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
 
         Intent intent = getIntent();
         String mac_addr = intent.getStringExtra("mac_addr");
-        BTSScanAPI.bindDevice(mac_addr);
+        if(!mac_addr.equals("")) {
+            BTSScanAPI.bindDevice(mac_addr);
 
-
-        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        PendingIntent intent1 = PendingIntent.getActivity(this, 0, new Intent(), 0);
-        Notification notify1 = new Notification.Builder(this).setSmallIcon(R.mipmap.ic_launcher)
-                .setAutoCancel(true)
-                .setContentTitle("6人游提示您")
-                .setContentText("您的行李牌绑定成功")
-                .setTicker("您的行李牌绑定成功")
-                .setContentIntent(intent1)
-                .getNotification();
-        nm.notify(1, notify1);
-
+            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            PendingIntent intent1 = PendingIntent.getActivity(this, 0, new Intent(), 0);
+            Notification notify1 = new Notification.Builder(this).setSmallIcon(R.mipmap.ic_launcher)
+                    .setAutoCancel(true)
+                    .setContentTitle(getResources().getString(R.string.notify_title))
+                    .setContentText(getResources().getString(R.string.notify_title))
+                    .setTicker(getResources().getString(R.string.notify_title))
+                    .setContentIntent(intent1)
+                    .getNotification();
+            nm.notify(1, notify1);
+        }
         initView();
     }
 

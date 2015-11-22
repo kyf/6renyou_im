@@ -146,4 +146,7 @@
     <string name="no_equipment">还没有智能行李牌?</string>
     <string name="online_buy">在线购买</string>
     <string name="scan_success_text">6人游智能行李牌上的灯是否在闪烁?</string>
+
+    <string name="notify_title">6人游提示您</string>
+    <string name="notify_bind_success">您的行李牌绑定成功</string>
 </resources>

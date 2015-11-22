@@ -17,7 +17,14 @@ public class ShowActivity extends Activity {
         new Handler().postDelayed(new Runnable(){
             @Override
             public void run() {
-                Intent intent = new Intent(ShowActivity.this, ShowTravelCardActivity.class);//MainActivity.class);
+                Intent intent;
+                if(false){
+                    intent = new Intent(ShowActivity.this, BindTravelCardActivity.class);
+                }else{
+                    intent = new Intent(ShowActivity.this, ShowTravelCardActivity.class);//MainActivity.class);
+                }
+
+
                 ShowActivity.this.startActivity(intent);
                 ShowActivity.this.finish();
             }
