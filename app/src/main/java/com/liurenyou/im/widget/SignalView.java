@@ -41,7 +41,7 @@ public class SignalView extends View {
         paint.setStrokeWidth(10);
         getMeasuredHeight();
         int lineNumber = 6;
-        float step = getMeasuredWidth() / lineNumber;
+        float step = getMeasuredWidth() / lineNumber - 5;
         float height = getMeasuredHeight();
 
         for(int i = 1; i <= lineNumber; i++){

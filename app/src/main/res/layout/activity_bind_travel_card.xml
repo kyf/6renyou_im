@@ -62,6 +62,7 @@
             />
 
         <com.liurenyou.im.widget.SignalView
+            android:id="@+id/signalView"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_centerInParent="true"
@@ -85,6 +86,7 @@
             android:text="@string/bind_success_text"
             android:layout_marginTop="@dimen/bind_travelcard_margin_top"
             android:layout_marginBottom="@dimen/bind_travelcard_margin_bottom"
+            android:id="@+id/DeviceTipLabel"
             />
 
     <LinearLayout

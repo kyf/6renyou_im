@@ -9,6 +9,8 @@ import android.widget.Toast;
 
 public class ShowTravelCardActivity extends BaseActivity implements View.OnClickListener {
 
+    public static int RESULT_CODE = 1001;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         mLayout = R.layout.activity_show_travel_card;
@@ -29,7 +31,7 @@ public class ShowTravelCardActivity extends BaseActivity implements View.OnClick
         switch(view.getId()){
             case R.id.addtravelcardbt:{
                 Intent intent = new Intent(this, ScanTravelCardActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent, RESULT_CODE);
                 break;
             }
             case R.id.buybt:{
@@ -37,6 +39,10 @@ public class ShowTravelCardActivity extends BaseActivity implements View.OnClick
                 break;
             }
         }
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, Intent intent){
+        this.finish();
     }
 }
 

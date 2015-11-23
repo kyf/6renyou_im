@@ -15,17 +15,21 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ebudiu.budiu.sdk.BTSScanAPI;
+import com.ebudiu.budiu.sdk.OnDeviceListener;
 import com.ebudiu.budiu.sdk.SDKAPI;
 import com.ebudiu.budiu.sdk.ScanCtrListener;
+import com.liurenyou.im.db.TravelDB;
 import com.liurenyou.im.widget.MyLoading;
 
-public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListener {
+public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListener, OnDeviceListener {
 
     private static final String LogTag = "ScanTravelCardActivity";
 
     private MyLoading myLoading;
 
     private String macAddr = "";
+
+    private double distance = 0;
 
     private TextView showLabel;
 
@@ -53,10 +57,16 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
                     break;
                 }
                 case R.id.confirmbindbt:{
+                    BTSScanAPI.bindDevice(macAddr);
+                    String sql = "insert into `travel_card`(`mac_addr`) values('" + macAddr + "')";
+                    TravelDB.execute(sql);
+                    setResult(ShowTravelCardActivity.RESULT_CODE);
                     Intent intent = new Intent(ScanTravelCardActivity.this, BindTravelCardActivity.class);
                     intent.putExtra("mac_addr", macAddr);
+                    intent.putExtra("distance", distance);
                     startActivity(intent);
                     finish();
+
                     break;
                 }
                 case R.id.gobackbt:{
@@ -112,13 +122,14 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
         ImageView gobackbt = (ImageView) findViewById(R.id.gobackbt);
         gobackbt.setOnClickListener(clickListener);
 
-        BTSScanAPI.setScanListener(this);
 
         if(!SDKAPI.isBluetoothLeSupported(this)){
             Toast.makeText(this, "您的设备不支持蓝牙", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        SDKAPI.setDeviceListener(this);
+        BTSScanAPI.setScanListener(this);
         if(!SDKAPI.isBluetoothOn(this)){
             Intent mIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(mIntent, 1);
@@ -154,8 +165,10 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
 
     @Override
     public void scanSuccess(final String s) {
+        /*
         macAddr = s;
         myHandler.sendEmptyMessage(1001);
+        */
     }
 
     @Override
@@ -170,7 +183,7 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
 
     @Override
     public void disConnect() {
-
+        updateResult("设备已断开");
     }
 
     @Override
@@ -206,4 +219,47 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
         super.onDestroy();
     }
 
+
+
+    @Override
+    public boolean isAutoConnect(String mac) {
+        return false;
+    }
+
+    @Override
+    public boolean isBoundDevice(String mac) {
+        return true;
+    }
+
+    @Override
+    public void deviceDiscovery(String mac, double distance) {
+        macAddr = mac;
+        myHandler.sendEmptyMessage(1001);
+    }
+
+    @Override
+    public void devicePower(String mac, int power) {
+
+    }
+
+    @Override
+    public void deviceDistance(String mac, double distance) {
+        this.distance = distance;
+        //updateResult(mac + " 当前距离是 " + String.valueOf(distance));
+    }
+
+    @Override
+    public void deviceConnected(String mac) {
+        //updateResult(mac + "===> connected!");
+    }
+
+    @Override
+    public void deviceDisconnect(String mac) {
+        //updateResult(mac + "===> disconnect!");
+    }
+
+
+    public void updateResult(String str){
+        Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
+    }
 }
