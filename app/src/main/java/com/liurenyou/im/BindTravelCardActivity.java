@@ -6,6 +6,12 @@ import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -22,6 +28,9 @@ import com.liurenyou.im.widget.AlertDialog;
 import com.liurenyou.im.widget.MyLoading;
 import com.liurenyou.im.widget.SignalView;
 
+import java.io.IOException;
+import java.util.List;
+
 public class BindTravelCardActivity extends BaseActivity implements View.OnClickListener, OnDeviceListener {
 
     private String macAddr = "";
@@ -33,6 +42,10 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
     private MyLoading myLoading;
 
     private SignalView signalView;
+
+    private AlertDialog alertDialog;
+
+    private double[] langAndLat = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,12 +112,15 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
     }
 
     public void initView(){
+        alertDialog = new AlertDialog(this);
         ImageView gobackbt = (ImageView) findViewById(R.id.gobackbt);
         gobackbt.setOnClickListener(this);
         DeviceTipLabel = (TextView) findViewById(R.id.DeviceTipLabel);
         signalView = (SignalView) findViewById(R.id.signalView);
         myLoading = new MyLoading(this);
         myLoading.setContent("正在更新数据...");
+
+        DeviceTipLabel.setOnClickListener(this);
     }
 
     @Override
@@ -112,6 +128,14 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
         switch(view.getId()){
             case R.id.gobackbt:{
                 finish();
+                break;
+            }
+            case R.id.DeviceTipLabel:{
+                if(langAndLat != null) {
+                    showMap(langAndLat);
+                }else{
+                    Toast.makeText(getApplicationContext(), "langitude and latitude is null", Toast.LENGTH_SHORT);
+                }
                 break;
             }
         }
@@ -138,6 +162,7 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
     @Override
     public void deviceDistance(String mac, double distance) {
         if(!mac.equalsIgnoreCase(macAddr))return;
+        alertDialog.dismiss();
         this.distance = distance;
         String strdistance = String.valueOf(distance);
         if(distance < 0){
@@ -146,10 +171,27 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
             DeviceTipLabel.setText(getResources().getString(R.string.notify_disconnect_travelcard));
             return;
         }
+
+        double[] locations = getLocation();
+        if(locations != null){
+            Toast.makeText(this, locations[0] + "," + locations[1], Toast.LENGTH_LONG).show();
+            langAndLat = locations;
+        }
+
+        Log.e("kkkkkkkkkkkkkkkkkkkkk", getResources().getString(R.string.notify_current_distance) + strdistance);
+
         DeviceTipLabel.setText(getResources().getString(R.string.notify_current_distance) + strdistance);
         myLoading.dismiss();
         signalView.setVisibility(View.VISIBLE);
     }
+
+    public void showMap(double[] locations){
+        Intent intent = new Intent(this, ShowPositionActivity.class);
+        intent.putExtra("long", locations[0]);
+        intent.putExtra("lat", locations[1]);
+        startActivity(intent);
+    }
+
 
     @Override
     public void deviceConnected(String mac) {
@@ -165,7 +207,7 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
 
 
     public void updateResult(String str){
-        final AlertDialog alertDialog = new AlertDialog(this);
+        alertDialog.dismiss();
         alertDialog.builder().setTitle("提示您")
                             .setMsg(str)
                             .setPositiveButton("确定", new View.OnClickListener() {
@@ -175,5 +217,38 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
                                 }
                             });
         alertDialog.show();
+    }
+
+    public double[] getLocation(){
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        String provider = LocationManager.GPS_PROVIDER;
+
+        if(!locationManager.isProviderEnabled(provider)){
+            LocationListener locationListener = new LocationListener() {
+                @Override
+                public void onLocationChanged(Location location) {}
+
+                @Override
+                public void onStatusChanged(String s, int i, Bundle bundle) {}
+
+                @Override
+                public void onProviderEnabled(String s) {}
+
+                @Override
+                public void onProviderDisabled(String s) {}
+            };
+
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 1, locationListener);
+            provider = LocationManager.NETWORK_PROVIDER;
+        }
+
+        Location location = locationManager.getLastKnownLocation(provider);
+        if(location != null){
+            double longitude = location.getLongitude();
+            double latitude = location.getLatitude();
+            return new double[]{longitude, latitude};
+        }else{
+            return null;
+        }
     }
 }

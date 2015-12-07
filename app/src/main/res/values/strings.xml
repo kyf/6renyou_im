@@ -152,4 +152,7 @@
     <string name="notify_current_distance">您的行李牌当前距离</string>
     <string name="notify_disconnect_travelcard">您的行李牌已断开</string>
     <string name="notify_bluetooth_closed">您的手机蓝牙没有开启</string>
+    <string name="title_activity_show_position">ShowPositionActivity</string>
+
+    <string name="hello_world">Hello world!</string>
 </resources>

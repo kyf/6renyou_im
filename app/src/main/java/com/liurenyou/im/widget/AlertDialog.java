@@ -182,4 +182,14 @@ public class AlertDialog {
 		setLayout();
 		dialog.show();
 	}
+
+	public void dismiss(){
+		if(dialog != null) {
+			dialog.dismiss();
+		}
+	}
+
+	public boolean isShowing(){
+		return dialog.isShowing();
+	}
 }
