@@ -21,13 +21,18 @@ public class ShowActivity extends Activity {
             public void run() {
                 Intent intent;
                 String macAddr = hasTravelCard();
+
+
                 if(!macAddr.equals("")){
                     intent = new Intent(ShowActivity.this, BindTravelCardActivity.class);
                     intent.putExtra("mac_addr", macAddr);
                     intent.putExtra("action", "rebind");
                 }else{
-                    intent = new Intent(ShowActivity.this, ShowTravelCardActivity.class);//MainActivity.class);
+                    intent = new Intent(ShowActivity.this, ShowTravelCardActivity.class);
                 }
+
+
+                //intent = new Intent(ShowActivity.this, MainActivity.class);
 
                 ShowActivity.this.startActivity(intent);
                 ShowActivity.this.finish();

@@ -53,7 +53,7 @@ public class TravelDB extends SQLiteOpenHelper {
     private static TravelDB getHelper(){
         if(TravelDB.helper == null){
             Context context = MyApplication.getContext();
-            TravelDB.helper = new TravelDB(context, "liurenyou");
+            TravelDB.helper = new TravelDB(context, "liurenyou_travelcard");
             TravelDB.helper.getWritableDatabase();
         }
         return TravelDB.helper;

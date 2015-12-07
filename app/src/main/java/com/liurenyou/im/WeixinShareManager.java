@@ -11,6 +11,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.tencent.mm.sdk.openapi.IWXAPI;
+import com.tencent.mm.sdk.openapi.SendAuth;
 import com.tencent.mm.sdk.openapi.SendMessageToWX;
 import com.tencent.mm.sdk.openapi.WXAPIFactory;
 import com.tencent.mm.sdk.openapi.WXImageObject;
@@ -77,6 +78,13 @@ public class WeixinShareManager {
         wxApi.registerApp(weixinAppId);
     }
 
+
+    public void auth(){
+        SendAuth.Req req = new SendAuth.Req();
+        req.scope = "snsapi_userinfo";
+        req.state = "6renyou";
+        wxApi.sendReq(req);
+    }
 
     public void shareByWeixin(ShareContent shareContent, int shareType) {
         switch (shareContent.getShareWay()) {

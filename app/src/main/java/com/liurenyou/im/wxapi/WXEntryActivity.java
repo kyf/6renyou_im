@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,6 +20,7 @@ import com.tencent.mm.sdk.openapi.BaseResp;
 import com.tencent.mm.sdk.openapi.ConstantsAPI;
 import com.tencent.mm.sdk.openapi.IWXAPI;
 import com.tencent.mm.sdk.openapi.IWXAPIEventHandler;
+import com.tencent.mm.sdk.openapi.SendAuth;
 import com.tencent.mm.sdk.openapi.ShowMessageFromWX;
 import com.tencent.mm.sdk.openapi.WXAPIFactory;
 import com.tencent.mm.sdk.openapi.WXAppExtendObject;
@@ -59,6 +61,15 @@ public class WXEntryActivity extends Activity implements IWXAPIEventHandler {
 
     @Override
     public void onResp(BaseResp resp) {
+        if(resp instanceof SendAuth.Resp){
+            SendAuth.Resp saresp = (SendAuth.Resp) resp;
+            Toast.makeText(this, saresp.state + "," + saresp.userName + "," + saresp.token + "," + saresp.resultUrl, Toast.LENGTH_LONG).show();
+            Log.e("6renyou", saresp.state + "," + saresp.userName + "," + saresp.token + "," + saresp.resultUrl);
+            finish();
+            return;
+        }
+
+
         int result = 0;
 
         switch (resp.errCode) {
@@ -76,7 +87,7 @@ public class WXEntryActivity extends Activity implements IWXAPIEventHandler {
                 break;
         }
 
-        Toast.makeText(this, result, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, resp.errStr, Toast.LENGTH_LONG).show();
         finish();
     }
 

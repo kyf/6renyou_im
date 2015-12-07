@@ -42,8 +42,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 
-import com.ebudiu.budiu.sdk.OnDeviceListener;
-import com.ebudiu.budiu.sdk.SDKAPI;
+
 import com.liurenyou.im.widget.MyLoading;
 import com.tencent.android.tpush.XGIOperateCallback;
 import com.tencent.android.tpush.XGPushManager;
@@ -181,6 +180,11 @@ public class MainActivity extends Activity {
                         public void onProgressChanged(WebView view, int newProgress) {
                             if (newProgress == 100) {
                                 myHandler.sendEmptyMessage(1003);
+
+                                /*用户授权 begin*/
+                                //WeixinShareManager shareManager = WeixinShareManager.getInstance(myContext);
+                                //shareManager.auth();
+                                /*end*/
                             }
                             super.onProgressChanged(view, newProgress);
                         }
@@ -291,92 +295,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    //budiu sdk setting
-    private void budiuSetting(){
-        if(!Utils.checkBlueToothState()){
-            Toast.makeText(this, "请先开启蓝牙", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // 设置回调监听
-        SDKAPI.setDeviceListener(new OnDeviceListener() {
-            @Override
-            public boolean isAutoConnect(String mac) {
-                // 上层判断是否连接某个设备
-                if (list != null) {
-                    for (String cur_mac : list) {
-                        if (!TextUtils.isEmpty(cur_mac) && cur_mac.equalsIgnoreCase(mac))
-                            return true;
-                    }
-                }
-                return false;
-            }
-
-            @Override
-            public boolean isBoundDevice(String mac) {
-                // 上层判断某个设备是否已绑定
-                if (list != null) {
-                    for (String cur_mac : list) {
-                        if (!TextUtils.isEmpty(cur_mac) && cur_mac.equalsIgnoreCase(mac))
-                            return true;
-                    }
-                }
-                return false;
-            }
-
-            @Override
-            public void deviceDiscovery(String mac, double distance) {
-                if (list != null) {
-                    for (String cur_mac : list) {
-                        if (!TextUtils.isEmpty(cur_mac) && cur_mac.equalsIgnoreCase(mac))
-                            return;
-                    }
-                    list.add(mac);
-                }
-                updateResult(mac + " discovered! distance ===> " + String.valueOf(distance));
-            }
-
-            @Override
-            public void devicePower(String mac, int power) {
-                updateResult(mac + " current power ===> " + String.valueOf(power));
-            }
-
-            @Override
-            public void deviceDistance(String mac, double distance) {
-                updateResult(mac + " current distance ===> " + String.valueOf(distance));
-            }
-
-            @Override
-            public void deviceConnected(String mac) {
-                updateResult(mac + "===> connected!");
-            }
-
-            @Override
-            public void deviceDisconnect(String mac) {
-                updateResult(mac + "===> disconnect!");
-            }
-        });
-    }
-
-    private void startScan() {
-        int ret = SDKAPI.startScanDevice();
-        if (ret != SDKAPI.API_ERROR) {
-            if (ret != SDKAPI.API_SUCCESS) {
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        startScan();
-                    }
-                }, 1000);
-            } else {
-                //updateResult("start scan!");
-            }
-        }
-    }
-
-    private void updateResult(String content){
-        Toast.makeText(this, content, Toast.LENGTH_SHORT).show();
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -431,7 +349,6 @@ public class MainActivity extends Activity {
         myHandler.sendMessage(msg);
         upgrade();
 
-        budiuSetting();
     }
 
 
@@ -506,7 +423,6 @@ public class MainActivity extends Activity {
         Utils.calljs(mainView, "start");
         super.onResume();
         MobclickAgent.onResume(this);
-        startScan();
     }
 
 
