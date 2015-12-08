@@ -43,9 +43,9 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
 
     private SignalView signalView;
 
-    private AlertDialog alertDialog;
-
     private double[] langAndLat = null;
+
+    private boolean connectState = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,7 +112,6 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
     }
 
     public void initView(){
-        alertDialog = new AlertDialog(this);
         ImageView gobackbt = (ImageView) findViewById(R.id.gobackbt);
         gobackbt.setOnClickListener(this);
         DeviceTipLabel = (TextView) findViewById(R.id.DeviceTipLabel);
@@ -162,7 +161,6 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
     @Override
     public void deviceDistance(String mac, double distance) {
         if(!mac.equalsIgnoreCase(macAddr))return;
-        alertDialog.dismiss();
         this.distance = distance;
         String strdistance = String.valueOf(distance);
         if(distance < 0){
@@ -177,8 +175,6 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
             Toast.makeText(this, locations[0] + "," + locations[1], Toast.LENGTH_LONG).show();
             langAndLat = locations;
         }
-
-        Log.e("kkkkkkkkkkkkkkkkkkkkk", getResources().getString(R.string.notify_current_distance) + strdistance);
 
         DeviceTipLabel.setText(getResources().getString(R.string.notify_current_distance) + strdistance);
         myLoading.dismiss();
@@ -197,26 +193,34 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
     public void deviceConnected(String mac) {
         myLoading.dismiss();
         signalView.setVisibility(View.VISIBLE);
+
+        if(!connectState) {
+            updateResult(getResources().getString(R.string.notify_connected_travelcard));
+        }
+        connectState = true;
     }
 
     @Override
     public void deviceDisconnect(String mac) {
         DeviceTipLabel.setText(getResources().getString(R.string.notify_disconnect_travelcard));
-        updateResult(getResources().getString(R.string.notify_disconnect_travelcard));
+        if(connectState) {
+            updateResult(getResources().getString(R.string.notify_disconnect_travelcard));
+        }
+        connectState = false;
     }
 
 
     public void updateResult(String str){
-        alertDialog.dismiss();
-        alertDialog.builder().setTitle("提示您")
-                            .setMsg(str)
-                            .setPositiveButton("确定", new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-
-                                }
-                            });
-        alertDialog.show();
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        PendingIntent intent1 = PendingIntent.getActivity(this, 0, new Intent(), 0);
+        Notification notify1 = new Notification.Builder(this).setSmallIcon(R.mipmap.ic_launcher)
+                .setAutoCancel(true)
+                .setContentTitle(getResources().getString(R.string.notify_title))
+                .setContentText(str)
+                .setTicker(str)
+                .setContentIntent(intent1)
+                .getNotification();
+        nm.notify(1, notify1);
     }
 
     public double[] getLocation(){
