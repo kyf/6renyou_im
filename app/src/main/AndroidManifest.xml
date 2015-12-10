@@ -150,10 +150,17 @@
         </activity>
         <activity android:name=".ScanTravelCardActivity" >
         </activity>
-        <activity android:name=".BindTravelCardActivity" >
+        <activity android:name=".BindTravelCardActivity"
+            android:launchMode="singleTask"
+            >
+            <intent-filter>
+                <action android:name="com.liurenyou.im.intent_bind_travel_card" />
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
         </activity>
         <activity
             android:name=".ShowPositionActivity"
+            android:launchMode="singleTask"
             android:label="@string/title_activity_show_position" >
         </activity>
     </application>

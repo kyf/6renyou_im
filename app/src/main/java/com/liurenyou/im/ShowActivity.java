@@ -20,19 +20,8 @@ public class ShowActivity extends Activity {
             @Override
             public void run() {
                 Intent intent;
-                String macAddr = hasTravelCard();
 
-
-                if(!macAddr.equals("")){
-                    intent = new Intent(ShowActivity.this, BindTravelCardActivity.class);
-                    intent.putExtra("mac_addr", macAddr);
-                    intent.putExtra("action", "rebind");
-                }else{
-                    intent = new Intent(ShowActivity.this, ShowTravelCardActivity.class);
-                }
-
-
-                //intent = new Intent(ShowActivity.this, MainActivity.class);
+                intent = new Intent(ShowActivity.this, MainActivity.class);
 
                 ShowActivity.this.startActivity(intent);
                 ShowActivity.this.finish();
@@ -41,15 +30,7 @@ public class ShowActivity extends Activity {
     }
 
 
-    private String hasTravelCard(){
-        String result = "";
-        String sql = "select `mac_addr` from `travel_card` limit 1";
-        Cursor cursor = TravelDB.query(sql);
-        if(cursor.getCount() == 0)return result;
-        cursor.moveToFirst();
-        result = cursor.getString(cursor.getColumnIndex("mac_addr"));
-        return result;
-    }
+
 
     @Override
     public void onResume() {

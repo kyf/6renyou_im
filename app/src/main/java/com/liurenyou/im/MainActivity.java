@@ -89,6 +89,10 @@ public class MainActivity extends Activity {
 
     private IWXAPI api;
 
+
+    private String loadURL = Constants.homePage;
+
+
     private LinearLayout ErrorPanel;
 
     private Button ReloadBt;
@@ -208,9 +212,10 @@ public class MainActivity extends Activity {
                             return true;
                         }
                     });
-                    mainView.loadUrl(Constants.homePage);
+                    mainView.loadUrl(loadURL);
                     break;
                 case 1003:
+                    mainView.setVisibility(View.VISIBLE);
                     pd.dismiss();
                     break;
                 case 1004:
@@ -268,6 +273,7 @@ public class MainActivity extends Activity {
                 mUploadMessage = null;
             }
         }
+
     }
 
 
@@ -295,12 +301,12 @@ public class MainActivity extends Activity {
         }
     }
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Utils.deviceToken = Utils.getDeviceToken();
+
         if(isFirst()) {
             Intent intent = new Intent(this, GuideActivity.class);
             startActivity(intent);
@@ -312,7 +318,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 mainView.setVisibility(View.VISIBLE);
-                mainView.loadUrl(Constants.homePage);
+                mainView.loadUrl(loadURL);
                 ErrorPanel.setVisibility(View.GONE);
             }
         });
@@ -404,6 +410,21 @@ public class MainActivity extends Activity {
         Utils.calljs(mainView, "stop");
         super.onPause();
         MobclickAgent.onResume(this);
+    }
+
+    @Override
+    public void onNewIntent(Intent intent){
+        String tmp = intent.getStringExtra("loadurl");
+        if(tmp !=null && !tmp.equals("")){
+            if(tmp.equalsIgnoreCase(loadURL))return;
+            loadURL = tmp;
+        }else{
+            if(loadURL.equalsIgnoreCase(Constants.homePage))return;
+            loadURL = Constants.homePage;
+        }
+        mainView.setVisibility(View.INVISIBLE);
+        mainView.loadUrl(loadURL);
+        pd.show();
     }
 
     public void onStart(){

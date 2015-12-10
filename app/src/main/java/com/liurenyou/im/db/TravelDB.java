@@ -21,10 +21,7 @@ public class TravelDB extends SQLiteOpenHelper {
     private static TravelDB helper;
 
     public void onCreate(SQLiteDatabase db){
-        String sql = "create table `travel_setting`(`id` integer primary key, `is_disconnect` int(1), `is_connect` int(1))";
-        db.execSQL(sql);
-
-        sql = "create table `travel_card`(id integer primary key, mac_addr varchar(250))";
+        String sql = "create table `travel_card`(id integer primary key, mac_addr varchar(250),  `is_disconnect` int(1), `is_connect` int(1), `longitude` varchar(250), `latitude` varchar(250))";
         db.execSQL(sql);
 
         if(this.db == null){

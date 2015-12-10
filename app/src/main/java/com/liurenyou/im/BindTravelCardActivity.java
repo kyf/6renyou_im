@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -13,9 +14,13 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,28 +29,117 @@ import com.ebudiu.budiu.sdk.BTSScanAPI;
 import com.ebudiu.budiu.sdk.OnDeviceListener;
 import com.ebudiu.budiu.sdk.SDKAPI;
 import com.ebudiu.budiu.sdk.ScanCtrListener;
+import com.kyleduo.switchbutton.SwitchButton;
+import com.liurenyou.im.db.TravelDB;
 import com.liurenyou.im.widget.AlertDialog;
 import com.liurenyou.im.widget.MyLoading;
 import com.liurenyou.im.widget.SignalView;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
-public class BindTravelCardActivity extends BaseActivity implements View.OnClickListener, OnDeviceListener {
-
-    private String macAddr = "";
-
-    private double distance = 0;
+public class BindTravelCardActivity extends BaseActivity implements View.OnClickListener {
 
     private TextView DeviceTipLabel;
 
     private MyLoading myLoading;
+
+    private String macAddr = "";
 
     private SignalView signalView;
 
     private double[] langAndLat = null;
 
     private boolean connectState = false;
+
+    private String travelCardMac = "";
+
+    private int is_connect = 1;
+
+    private int is_disconnect = 1;
+
+    private Handler myHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg){
+            Log.e("6renyou", msg.what + "");
+            switch(msg.what){
+                case 1001:{
+                    /*
+                    myLoading.dismiss();
+                    signalView.setVisibility(View.VISIBLE);
+                    if(connectState) {
+                        updateResult(getResources().getString(R.string.notify_connected_travelcard));
+                    }
+                    connectState = false;
+                    */
+                    break;
+                }
+                case 1002:{
+                    double distance = (double) msg.obj;
+                    String strdistance = String.valueOf(distance);
+
+                    if(distance < 0){
+                        if(connectState) {
+                            updateResult(getResources().getString(R.string.notify_disconnect_travelcard));
+                        }
+                        connectState = false;
+                        signalView.setVisibility(View.INVISIBLE);
+                        DeviceTipLabel.setText(getResources().getString(R.string.notify_disconnect_travelcard));
+                        SDKAPI.startScanDevice();
+                        return;
+                    }
+
+                    double[] locations = getLocation();
+                    if(locations != null){
+                        //Toast.makeText(BindTravelCardActivity.this, locations[0] + "," + locations[1], Toast.LENGTH_LONG).show();
+                        langAndLat = locations;
+                        saveLocation();
+                    }
+
+                    connectState = true;
+                    DeviceTipLabel.setText(getResources().getString(R.string.notify_connected_travelcard));
+                    myLoading.dismiss();
+                    signalView.setVisibility(View.VISIBLE);
+
+                    break;
+                }
+                case 1003:{
+                    myLoading.dismiss();
+                    signalView.setVisibility(View.VISIBLE);
+
+                    if(!connectState) {
+                        updateResult(getResources().getString(R.string.notify_connected_travelcard));
+                    }
+                    connectState = true;
+                    break;
+                }
+                case 1004:{
+                    DeviceTipLabel.setText(getResources().getString(R.string.notify_disconnect_travelcard));
+                    if(connectState) {
+                        updateResult(getResources().getString(R.string.notify_disconnect_travelcard));
+                    }
+                    connectState = false;
+                    SDKAPI.startScanDevice();
+                    break;
+                }
+                case 1005:{
+                    connectState = (boolean) msg.obj;
+                    if(!connectState){
+                        SDKAPI.startScanDevice();
+                    }
+                    break;
+                }
+                default:{
+                    myLoading.dismiss();
+                    SDKAPI.startScanDevice();
+                    DeviceTipLabel.setText("");
+                    signalView.setVisibility(View.INVISIBLE);
+                }
+            }
+        }
+
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,11 +149,25 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
         Intent intent = getIntent();
         macAddr = intent.getStringExtra("mac_addr");
         String action = intent.getStringExtra("action");
-        double distance = intent.getDoubleExtra("distance", 0);
         initView();
-        SDKAPI.setDeviceListener(this);
+
+        Log.e("6renyou", "special mac:" + macAddr);
+        CardListener instance = CardListener.getInstance();
+        instance.setMyHandler(myHandler);
+        instance.autoConnect = true;
+        instance.macAddr = macAddr;
+        if(!instance.isListen) {
+            SDKAPI.setDeviceListener(instance);
+            instance.isListen = true;
+            SDKAPI.startScanDevice();
+        }
+
+
         DeviceTipLabel.setText("");
         signalView.setVisibility(View.INVISIBLE);
+        boolean requestConnectState = SDKAPI.getConnectedDevices();
+
+
         if(!macAddr.equals("")) {
 
             if(action == null || action.equals("")) {
@@ -82,10 +190,6 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
                     return;
                 }
                 myLoading.show();
-
-                SDKAPI.startScanDevice();
-                DeviceTipLabel.setText("");
-                signalView.setVisibility(View.INVISIBLE);
 
             }
         }
@@ -111,6 +215,16 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
 
     }
 
+    private void getTravelCard(){
+        String sql = "select `mac_addr`, `is_disconnect`, `is_connect` from `travel_card` limit 1";
+        Cursor cursor = TravelDB.query(sql);
+        if(cursor.getCount() == 0)return;
+        cursor.moveToFirst();
+        travelCardMac = cursor.getString(cursor.getColumnIndex("mac_addr"));
+        is_disconnect = cursor.getInt(cursor.getColumnIndex("is_disconnect"));
+        is_connect = cursor.getInt(cursor.getColumnIndex("is_connect"));
+    }
+
     public void initView(){
         ImageView gobackbt = (ImageView) findViewById(R.id.gobackbt);
         gobackbt.setOnClickListener(this);
@@ -118,101 +232,132 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
         signalView = (SignalView) findViewById(R.id.signalView);
         myLoading = new MyLoading(this);
         myLoading.setContent("正在更新数据...");
+        ImageView sosbt = (ImageView) findViewById(R.id.sosbt);
+        sosbt.setOnClickListener(this);
+        getTravelCard();
 
         DeviceTipLabel.setOnClickListener(this);
+        SwitchButton SbDisconnect = (SwitchButton) findViewById(R.id.SwitchBtDisconnect);
+        SwitchButton SbConnect = (SwitchButton) findViewById(R.id.SwitchBtConnect);
+
+        if(is_disconnect == 0){
+            SbDisconnect.setChecked(false);
+        }
+
+        if(is_connect == 0){
+            SbConnect.setChecked(false);
+        }
+
+        SbDisconnect.setOnCheckedChangeListener(new SwitchButton.OnCheckedChangeListener(){
+            @Override
+            public void onCheckedChanged(CompoundButton var1, boolean var2){
+                if(var2){
+                    is_disconnect = 1;
+                }else{
+                    is_disconnect = 0;
+                }
+                String sql = "update `travel_card` set `is_disconnect` = " + is_disconnect;
+                TravelDB.execute(sql);
+
+            }
+        });
+
+        SbConnect.setOnCheckedChangeListener(new SwitchButton.OnCheckedChangeListener(){
+            @Override
+            public void onCheckedChanged(CompoundButton var1, boolean var2){
+                if(var2){
+                    is_connect = 1;
+                }else{
+                    is_connect = 0;
+                }
+                String sql = "update `travel_card` set `is_connect` =  " + is_connect;
+                TravelDB.execute(sql);
+            }
+        });
+
+
+        double[] locations = getLocation();
+        if(locations != null){
+            langAndLat = locations;
+            saveLocation();
+        }
+    }
+
+    private void saveLocation(){
+        double longitude = langAndLat[0];
+        double latitude = langAndLat[1];
+        String sql = "update `travel_card` set `longitude` =  '" + longitude + "', `latitude` = '"+latitude+"'";
+        TravelDB.execute(sql);
+    }
+
+    private double[] getLocationByDb(){
+        double longitude = 0;
+        double latitude = 0;
+        String sql = "select `longitude`, `latitude` from `travel_card` limit 1";
+        Cursor cursor = TravelDB.query(sql);
+        if(cursor.getCount() == 0)return null;
+        cursor.moveToFirst();
+
+        longitude = cursor.getDouble(cursor.getColumnIndex("longitude"));
+        latitude = cursor.getDouble(cursor.getColumnIndex("latitude"));
+        return new double[]{longitude, latitude};
+    }
+
+    public boolean onKeyDown(int keyCode, KeyEvent e){
+        if(keyCode == KeyEvent.KEYCODE_BACK){
+            Intent intent = new Intent(this, MainActivity.class);
+            String url = "";
+            intent.putExtra("loadurl", url);
+            startActivity(intent);
+            finish();
+           return true;
+        }
+
+        return super.onKeyDown(keyCode, e);
     }
 
     @Override
     public void onClick(View view){
         switch(view.getId()){
             case R.id.gobackbt:{
+                Intent intent = new Intent(this, MainActivity.class);
+                String url = "";
+                intent.putExtra("loadurl", url);
+                startActivity(intent);
                 finish();
                 break;
             }
-            case R.id.DeviceTipLabel:{
-                if(langAndLat != null) {
-                    showMap(langAndLat);
-                }else{
-                    Toast.makeText(getApplicationContext(), "langitude and latitude is null", Toast.LENGTH_SHORT);
+            case R.id.sosbt:{
+                double[] pos = getLocationByDb();
+                if(pos == null){
+                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.tip_no_lang_lat), Toast.LENGTH_SHORT).show();
+                }else {
+                    showMap(pos);
                 }
                 break;
             }
         }
     }
 
-    @Override
-    public boolean isAutoConnect(String mac) {
-        return mac.equalsIgnoreCase(macAddr)  ? true : false;
-    }
-
-    @Override
-    public boolean isBoundDevice(String mac) {
-        return true;
-    }
-
-    @Override
-    public void deviceDiscovery(String mac, double distance) {}
-
-    @Override
-    public void devicePower(String mac, int power) {
-
-    }
-
-    @Override
-    public void deviceDistance(String mac, double distance) {
-        if(!mac.equalsIgnoreCase(macAddr))return;
-        this.distance = distance;
-        String strdistance = String.valueOf(distance);
-        if(distance < 0){
-            updateResult(getResources().getString(R.string.notify_disconnect_travelcard));
-            signalView.setVisibility(View.INVISIBLE);
-            DeviceTipLabel.setText(getResources().getString(R.string.notify_disconnect_travelcard));
-            return;
-        }
-
-        double[] locations = getLocation();
-        if(locations != null){
-            Toast.makeText(this, locations[0] + "," + locations[1], Toast.LENGTH_LONG).show();
-            langAndLat = locations;
-        }
-
-        DeviceTipLabel.setText(getResources().getString(R.string.notify_current_distance) + strdistance);
-        myLoading.dismiss();
-        signalView.setVisibility(View.VISIBLE);
-    }
 
     public void showMap(double[] locations){
-        Intent intent = new Intent(this, ShowPositionActivity.class);
-        intent.putExtra("long", locations[0]);
-        intent.putExtra("lat", locations[1]);
+        Intent intent = new Intent(this, MainActivity.class);
+        String url = "http://m.6renyou.com/android/latlng?lng=" + locations[0] + "&lat=" + locations[1];
+        intent.putExtra("loadurl", url);
         startActivity(intent);
     }
 
 
-    @Override
-    public void deviceConnected(String mac) {
-        myLoading.dismiss();
-        signalView.setVisibility(View.VISIBLE);
-
-        if(!connectState) {
-            updateResult(getResources().getString(R.string.notify_connected_travelcard));
-        }
-        connectState = true;
-    }
-
-    @Override
-    public void deviceDisconnect(String mac) {
-        DeviceTipLabel.setText(getResources().getString(R.string.notify_disconnect_travelcard));
-        if(connectState) {
-            updateResult(getResources().getString(R.string.notify_disconnect_travelcard));
-        }
-        connectState = false;
-    }
-
-
     public void updateResult(String str){
+        if(is_disconnect == 0 && connectState)return;
+        if(is_connect == 0 && !connectState)return;
+
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        PendingIntent intent1 = PendingIntent.getActivity(this, 0, new Intent(), 0);
+        Intent intent = new Intent();
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setAction("com.liurenyou.im.intent_bind_travel_card");
+
+        PendingIntent intent1 = PendingIntent.getActivity(this, 0, intent, 0);
         Notification notify1 = new Notification.Builder(this).setSmallIcon(R.mipmap.ic_launcher)
                 .setAutoCancel(true)
                 .setContentTitle(getResources().getString(R.string.notify_title))

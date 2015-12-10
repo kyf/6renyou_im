@@ -1,10 +1,14 @@
 package com.liurenyou.im;
 
 import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
 import android.os.Build;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
+
+import com.liurenyou.im.db.TravelDB;
 
 import org.json.JSONObject;
 
@@ -144,6 +148,29 @@ public class JavaScriptMethods {
         return json.toString();
     }
 
+    @JavascriptInterface
+    public void startTravelCard(){
+        Intent intent;
+        String macAddr = hasTravelCard();
 
+        if(!macAddr.equals("")){
+            intent = new Intent(mContext, BindTravelCardActivity.class);
+            intent.putExtra("mac_addr", macAddr);
+            intent.putExtra("action", "rebind");
+        }else{
+            intent = new Intent(mContext, ShowTravelCardActivity.class);
+        }
+        mContext.startActivity(intent);
+    }
+
+    private String hasTravelCard(){
+        String result = "";
+        String sql = "select `mac_addr` from `travel_card` limit 1";
+        Cursor cursor = TravelDB.query(sql);
+        if(cursor.getCount() == 0)return result;
+        cursor.moveToFirst();
+        result = cursor.getString(cursor.getColumnIndex("mac_addr"));
+        return result;
+    }
 }
 

@@ -21,7 +21,9 @@ import com.ebudiu.budiu.sdk.ScanCtrListener;
 import com.liurenyou.im.db.TravelDB;
 import com.liurenyou.im.widget.MyLoading;
 
-public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListener, OnDeviceListener {
+import java.util.ArrayList;
+
+public class ScanTravelCardActivity extends BaseActivity {
 
     private static final String LogTag = "ScanTravelCardActivity";
 
@@ -58,7 +60,10 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
                 }
                 case R.id.confirmbindbt:{
                     BTSScanAPI.bindDevice(macAddr);
-                    String sql = "insert into `travel_card`(`mac_addr`) values('" + macAddr + "')";
+                    if(!TextUtils.isEmpty(macAddr)) {
+                        //SDKAPI.disconnectDevice(macAddr);
+                    }
+                    String sql = "insert into `travel_card`(`mac_addr`, `is_disconnect`, `is_connect`) values('" + macAddr + "', 1, 1)";
                     TravelDB.execute(sql);
                     setResult(ShowTravelCardActivity.RESULT_CODE);
                     Intent intent = new Intent(ScanTravelCardActivity.this, BindTravelCardActivity.class);
@@ -82,12 +87,17 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
         public void handleMessage(Message msg){
             switch(msg.what){
                 case 1001:{
+                    macAddr = (String) msg.obj;
                     showLabel.setText(getResources().getString(R.string.scan_success_text));
                     myLoading.dismiss();
                     reScanBt.setVisibility(View.VISIBLE);
                     confirmBindBt.setVisibility(View.VISIBLE);
                     scan_success_image.setVisibility(View.VISIBLE);
                     BTSScanAPI.doConnectDevice(macAddr);
+                    break;
+                }
+                case 1002:{
+                    distance = (double) msg.obj;
                     break;
                 }
                 default:{
@@ -128,8 +138,11 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
             return;
         }
 
-        SDKAPI.setDeviceListener(this);
-        BTSScanAPI.setScanListener(this);
+        CardListener instance = CardListener.getInstance();
+        instance.setMyHandler(myHandler);
+        SDKAPI.setDeviceListener(instance);
+        BTSScanAPI.setScanListener(instance);
+        instance.isListen = true;
         if(!SDKAPI.isBluetoothOn(this)){
             Intent mIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(mIntent, 1);
@@ -155,111 +168,5 @@ public class ScanTravelCardActivity extends BaseActivity implements ScanCtrListe
             }
         }
 
-    }
-
-
-    @Override
-    public void scanFail() {
-        myHandler.sendEmptyMessage(1002);
-    }
-
-    @Override
-    public void scanSuccess(final String s) {
-        /*
-        macAddr = s;
-        myHandler.sendEmptyMessage(1001);
-        */
-    }
-
-    @Override
-    public void connectSucess() {
-
-    }
-
-    @Override
-    public void connectFail() {
-
-    }
-
-    @Override
-    public void disConnect() {
-        updateResult("设备已断开");
-    }
-
-    @Override
-    public void bindSucess(final String s) {
-
-    }
-
-    @Override
-    public void bindFail() {
-
-    }
-
-    @Override
-    public void sendStatus(String s) {
-
-    }
-
-    @Override
-    public void unBindSucess(final String s) {
-
-    }
-
-    @Override
-    public void unBindFail() {
-
-    }
-
-    @Override
-    public void onDestroy(){
-        if(!TextUtils.isEmpty(macAddr)) {
-            SDKAPI.disconnectDevice(macAddr);
-        }
-        super.onDestroy();
-    }
-
-
-
-    @Override
-    public boolean isAutoConnect(String mac) {
-        return false;
-    }
-
-    @Override
-    public boolean isBoundDevice(String mac) {
-        return true;
-    }
-
-    @Override
-    public void deviceDiscovery(String mac, double distance) {
-        macAddr = mac;
-        myHandler.sendEmptyMessage(1001);
-    }
-
-    @Override
-    public void devicePower(String mac, int power) {
-
-    }
-
-    @Override
-    public void deviceDistance(String mac, double distance) {
-        this.distance = distance;
-        //updateResult(mac + " 当前距离是 " + String.valueOf(distance));
-    }
-
-    @Override
-    public void deviceConnected(String mac) {
-        //updateResult(mac + "===> connected!");
-    }
-
-    @Override
-    public void deviceDisconnect(String mac) {
-        //updateResult(mac + "===> disconnect!");
-    }
-
-
-    public void updateResult(String str){
-        Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
     }
 }

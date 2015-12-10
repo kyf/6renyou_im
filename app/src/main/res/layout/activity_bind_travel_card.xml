@@ -43,6 +43,17 @@
             android:id="@+id/gobackbt"
             />
 
+        <ImageView
+            android:id="@+id/sosbt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/sos"
+            android:scaleType="fitCenter"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="@dimen/goback_left_margin"
+            />
+
     </RelativeLayout>
 
 
@@ -147,7 +158,9 @@
             <com.kyleduo.switchbutton.SwitchButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:kswOnColor="@color/appbase"
+                android:id="@+id/SwitchBtDisconnect"
+                app:kswTintColor="@color/appbase"
+                android:checked="true"
                 />
             </LinearLayout>
         </RelativeLayout>
@@ -184,10 +197,11 @@
                 android:gravity="center_vertical"
                 android:layout_height="match_parent">
             <com.kyleduo.switchbutton.SwitchButton
-
+                android:id="@+id/SwitchBtConnect"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:kswOnColor="@color/appbase"
+                app:kswTintColor="@color/appbase"
+                android:checked="true"
                 />
             </LinearLayout>
         </RelativeLayout>
