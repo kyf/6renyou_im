@@ -39,23 +39,6 @@ public class MessageReceiver extends XGPushBaseReceiver {
 		if (context == null || notifiShowedRlt == null) {
 			return;
 		}
-
-		/*
-		NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-		PendingIntent pendingIntent3 = PendingIntent.getActivity(context, 0,
-				new Intent(context, MainActivity.class), 0);
-		String title = notifiShowedRlt.getTitle();
-		Notification notify3 = new Notification.Builder(context)
-				.setSmallIcon(R.drawable.ic_launcher)
-				.setTicker(title)
-				.setContentTitle(title)
-				.setContentText(notifiShowedRlt.getContent())
-				.setContentIntent(pendingIntent3).build();
-
-		notify3.flags |= Notification.FLAG_AUTO_CANCEL;
-		nm.notify(1, notify3);
-		*/
 	}
 
 	@Override
@@ -124,25 +107,27 @@ public class MessageReceiver extends XGPushBaseReceiver {
 			// APP自己处理通知被清除后的相关动作
 			text = "通知被清除 :" + message;
 		}
-		//Toast.makeText(context, "广播接收到通知被点击:" + message.toString(),	Toast.LENGTH_SHORT).show();
+
 		// 获取自定义key-value
 		String customContent = message.getCustomContent();
+
 		if (customContent != null && customContent.length() != 0) {
 			try {
 				JSONObject obj = new JSONObject(customContent);
-				// key1为前台配置的key
-				if (!obj.isNull("key")) {
-					String value = obj.getString("key");
-					Log.d(LogTag, "get custom value:" + value);
+
+				if (!obj.isNull("loadurl")) {
+					String value = obj.getString("loadurl");
+					Intent intent = new Intent(Intent.ACTION_VIEW);
+					intent.setClass(context, MainActivity.class);
+					intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					intent.putExtra("loadurl", value);
+					context.startActivity(intent);
 				}
-				// ...
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 		}
-		// APP自主处理的过程。。。
-		Log.d(LogTag, text);
-		show(context, text);
+
 	}
 
 	@Override
@@ -169,6 +154,7 @@ public class MessageReceiver extends XGPushBaseReceiver {
 	public void onTextMessage(Context context, XGPushTextMessage message) {
 		// TODO Auto-generated method stub
 		String text = "收到消息:" + message.toString();
+		Log.e("keyongfeng", text);
 		// 获取自定义key-value
 		String customContent = message.getCustomContent();
 		if (customContent != null && customContent.length() != 0) {

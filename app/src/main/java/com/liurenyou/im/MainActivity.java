@@ -212,6 +212,12 @@ public class MainActivity extends Activity {
                             return true;
                         }
                     });
+
+                    String loadurl = getIntent().getStringExtra("loadurl");
+                    if(loadurl != null){
+                        loadURL = loadurl;
+                    }
+
                     mainView.loadUrl(loadURL);
                     break;
                 case 1003:
@@ -334,7 +340,7 @@ public class MainActivity extends Activity {
         api.registerApp(Constants.APP_ID);
 
 
-        XGPushManager.registerPush(this, new XGIOperateCallback() {
+        XGPushManager.registerPush(getApplicationContext(), new XGIOperateCallback() {
             @Override
             public void onSuccess(Object data, int flag) {
                 Log.e("TPush", "注册成功，设备token为：" + data);
