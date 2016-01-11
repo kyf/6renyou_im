@@ -89,6 +89,8 @@ public class MainActivity extends Activity {
 
     private IWXAPI api;
 
+    private boolean hasLoaded = false;
+
 
     private String loadURL = Constants.homePage;
 
@@ -303,7 +305,7 @@ public class MainActivity extends Activity {
         }else{
             sql = "update `appglobal` set `isfirst` = " + versionCode + " where id = 1";
             DBHelper.execute(sql);
-            return true;
+            return false;
         }
     }
 
@@ -346,6 +348,14 @@ public class MainActivity extends Activity {
                 Log.e("TPush", "注册成功，设备token为：" + data);
                 Utils.getToken(myContext, true, data.toString());
                 Utils.saveDeviceToken(data.toString());
+
+                if (!hasLoaded) {
+                    Message msg = Message.obtain();
+                    msg.what = 1002;
+                    msg.obj = new String[]{"", ""};
+                    myHandler.sendMessage(msg);
+                }
+
             }
 
             @Override
@@ -355,10 +365,16 @@ public class MainActivity extends Activity {
             }
         });
 
-        Message msg = Message.obtain();
-        msg.what = 1002;
-        msg.obj = new String[]{"", ""};
-        myHandler.sendMessage(msg);
+
+        if(Utils.deviceToken != null && !Utils.deviceToken.equalsIgnoreCase("")) {
+            Message msg = Message.obtain();
+            msg.what = 1002;
+            msg.obj = new String[]{"", ""};
+            myHandler.sendMessage(msg);
+            hasLoaded = true;
+        }
+
+
         upgrade();
 
     }

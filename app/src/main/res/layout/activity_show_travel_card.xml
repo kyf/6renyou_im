@@ -75,6 +75,7 @@
         android:textColor="@color/tiptext"
         android:textSize="@dimen/button_size"
         android:gravity="center"
+        android:visibility="invisible"
         />
     <Button
         android:id="@+id/buybt"
@@ -86,5 +87,6 @@
         android:layout_marginRight="@dimen/my_activity_horizontal_margin"
         android:text="@string/online_buy"
         android:textSize="@dimen/button_size"
+        android:visibility="invisible"
         />
 </LinearLayout>
