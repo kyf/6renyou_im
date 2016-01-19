@@ -163,7 +163,7 @@ public class JavaScriptMethods {
         mContext.startActivity(intent);
     }
 
-    private String hasTravelCard(){
+    public String hasTravelCard(){
         String result = "";
         String sql = "select `mac_addr` from `travel_card` limit 1";
         Cursor cursor = TravelDB.query(sql);

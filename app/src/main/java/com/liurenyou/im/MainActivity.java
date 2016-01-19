@@ -216,7 +216,7 @@ public class MainActivity extends Activity {
                     });
 
                     String loadurl = getIntent().getStringExtra("loadurl");
-                    if(loadurl != null){
+                    if(loadurl != null && !loadurl.equalsIgnoreCase("")){
                         loadURL = loadurl;
                     }
 

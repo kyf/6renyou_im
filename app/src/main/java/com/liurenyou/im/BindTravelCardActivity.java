@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -34,12 +35,16 @@ import com.liurenyou.im.db.TravelDB;
 import com.liurenyou.im.widget.AlertDialog;
 import com.liurenyou.im.widget.MyLoading;
 import com.liurenyou.im.widget.SignalView;
+import com.tencent.map.geolocation.TencentLocation;
+import com.tencent.map.geolocation.TencentLocationListener;
+import com.tencent.map.geolocation.TencentLocationManager;
+import com.tencent.map.geolocation.TencentLocationRequest;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BindTravelCardActivity extends BaseActivity implements View.OnClickListener {
+public class BindTravelCardActivity extends BaseActivity implements View.OnClickListener, TencentLocationListener {
 
     private TextView DeviceTipLabel;
 
@@ -59,10 +64,12 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
 
     private int is_disconnect = 1;
 
+    private double lastDistance = 0;
+
     private Handler myHandler = new Handler(){
         @Override
         public void handleMessage(Message msg){
-            Log.e("6renyou", msg.what + "");
+            //Log.e("6renyou", msg.what + "");
             switch(msg.what){
                 case 1001:{
                     /*
@@ -80,6 +87,10 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
                     String strdistance = String.valueOf(distance);
 
                     if(distance < 0){
+                        if(lastDistance > 0){
+                            lastDistance = distance;
+                            return;
+                        }
                         if(connectState) {
                             updateResult(getResources().getString(R.string.notify_disconnect_travelcard));
                         }
@@ -92,7 +103,6 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
 
                     double[] locations = getLocation();
                     if(locations != null){
-                        //Toast.makeText(BindTravelCardActivity.this, locations[0] + "," + locations[1], Toast.LENGTH_LONG).show();
                         langAndLat = locations;
                         saveLocation();
                     }
@@ -130,6 +140,13 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
                     }
                     break;
                 }
+                case 4001:{
+                    myLoading.dismiss();
+                    DeviceTipLabel.setText(getResources().getString(R.string.notify_disconnect_travelcard));
+                    signalView.setVisibility(View.INVISIBLE);
+                    updateResult(getResources().getString(R.string.notify_disconnect_travelcard));
+                    break;
+                }
                 default:{
                     myLoading.dismiss();
                     SDKAPI.startScanDevice();
@@ -141,34 +158,62 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
 
     };
 
+
+    private void timeoutScan(){
+        new Thread(new Runnable(){
+            @Override
+            public void run() {
+                try {
+                    int second = 1000;
+                    Thread.sleep(second * 5);
+                    if(!connectState) {
+                        myHandler.sendEmptyMessage(4001);
+                    }
+                }catch(InterruptedException e){
+
+                }
+            }
+        }).start();
+    }
+
+    private void regTencentLocation(){
+        TencentLocationRequest request = TencentLocationRequest.create();
+        TencentLocationManager locationManager = TencentLocationManager.getInstance(this);
+        locationManager.requestLocationUpdates(request, this);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         mLayout = R.layout.activity_bind_travel_card;
         super.onCreate(savedInstanceState);
 
+        regTencentLocation();
+
         Intent intent = getIntent();
         macAddr = intent.getStringExtra("mac_addr");
+
         String action = intent.getStringExtra("action");
         initView();
 
-        Log.e("6renyou", "special mac:" + macAddr);
+        //Log.e("6renyou", "special mac:" + macAddr);
         CardListener instance = CardListener.getInstance();
         instance.setMyHandler(myHandler);
         instance.autoConnect = true;
         instance.macAddr = macAddr;
-        if(!instance.isListen) {
-            SDKAPI.setDeviceListener(instance);
-            instance.isListen = true;
-            SDKAPI.startScanDevice();
-        }
 
+
+        SDKAPI.setDeviceListener(instance);
+        instance.isListen = true;
+        SDKAPI.startScanDevice();
+
+        timeoutScan();
 
         DeviceTipLabel.setText("");
         signalView.setVisibility(View.INVISIBLE);
         boolean requestConnectState = SDKAPI.getConnectedDevices();
 
 
-        if(!macAddr.equals("")) {
+        if(macAddr != null && !macAddr.equals("")) {
 
             if(action == null || action.equals("")) {
                 NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -183,6 +228,12 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
                 nm.notify(1, notify1);
                 DeviceTipLabel.setText(R.string.notify_bind_success);
                 signalView.setVisibility(View.VISIBLE);
+
+                double[] locations = getLocation();
+                if(locations != null){
+                    langAndLat = locations;
+                    saveLocation();
+                }
             }else{
                 if(!SDKAPI.isBluetoothOn(this)){
                     Intent mIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -190,10 +241,14 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
                     return;
                 }
                 myLoading.show();
-
+                if(instance.isConnected){
+                    Message msg = Message.obtain();
+                    msg.what = 1002;
+                    msg.obj = (double) 0;
+                    myHandler.sendMessage(msg);
+                }
             }
         }
-
     }
 
     @Override
@@ -275,12 +330,6 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
             }
         });
 
-
-        double[] locations = getLocation();
-        if(locations != null){
-            langAndLat = locations;
-            saveLocation();
-        }
     }
 
     private void saveLocation(){
@@ -353,9 +402,7 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
         if(is_connect == 0 && !connectState)return;
 
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        Intent intent = new Intent();
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setAction("com.liurenyou.im.intent_bind_travel_card");
+        Intent intent = new Intent(this, BindTravelCardActivity.class);
 
         PendingIntent intent1 = PendingIntent.getActivity(this, 0, intent, 0);
         Notification notify1 = new Notification.Builder(this).setSmallIcon(R.mipmap.ic_launcher)
@@ -369,35 +416,16 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
     }
 
     public double[] getLocation(){
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        String provider = LocationManager.GPS_PROVIDER;
+        return langAndLat;
+    }
 
-        if(!locationManager.isProviderEnabled(provider)){
-            LocationListener locationListener = new LocationListener() {
-                @Override
-                public void onLocationChanged(Location location) {}
+    @Override
+    public void onLocationChanged(TencentLocation tencentLocation, int i, String s) {
+        langAndLat = new double[]{tencentLocation.getLongitude(), tencentLocation.getLatitude()};
+    }
 
-                @Override
-                public void onStatusChanged(String s, int i, Bundle bundle) {}
+    @Override
+    public void onStatusUpdate(String s, int i, String s1) {
 
-                @Override
-                public void onProviderEnabled(String s) {}
-
-                @Override
-                public void onProviderDisabled(String s) {}
-            };
-
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 1, locationListener);
-            provider = LocationManager.NETWORK_PROVIDER;
-        }
-
-        Location location = locationManager.getLastKnownLocation(provider);
-        if(location != null){
-            double longitude = location.getLongitude();
-            double latitude = location.getLatitude();
-            return new double[]{longitude, latitude};
-        }else{
-            return null;
-        }
     }
 }

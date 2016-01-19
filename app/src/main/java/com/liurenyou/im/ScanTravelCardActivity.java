@@ -1,6 +1,5 @@
 package com.liurenyou.im;
 
-import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.os.Bundle;
@@ -19,6 +18,7 @@ import com.ebudiu.budiu.sdk.OnDeviceListener;
 import com.ebudiu.budiu.sdk.SDKAPI;
 import com.ebudiu.budiu.sdk.ScanCtrListener;
 import com.liurenyou.im.db.TravelDB;
+import com.liurenyou.im.widget.AlertDialog;
 import com.liurenyou.im.widget.MyLoading;
 
 import java.util.ArrayList;
@@ -39,7 +39,7 @@ public class ScanTravelCardActivity extends BaseActivity {
 
     private ImageView scan_success_image;
 
-    private static final int SCAN_INTERVAL = 5;
+    private static final int SCAN_INTERVAL = 8;
 
     private View.OnClickListener clickListener = new View.OnClickListener(){
         @Override
@@ -51,27 +51,19 @@ public class ScanTravelCardActivity extends BaseActivity {
                         reScanBt.setVisibility(View.VISIBLE);
                         return;
                     }
+                    /*
                     if(!TextUtils.isEmpty(macAddr)) {
+                        Log.e(LogTag, "disconnectDevice");
                         SDKAPI.disconnectDevice(macAddr);
                     }
+                    */
                     myLoading.show();
                     BTSScanAPI.scanStart(SCAN_INTERVAL);
                     break;
                 }
                 case R.id.confirmbindbt:{
+                    //Log.e("confirmbindbt", macAddr);
                     BTSScanAPI.bindDevice(macAddr);
-                    if(!TextUtils.isEmpty(macAddr)) {
-                        //SDKAPI.disconnectDevice(macAddr);
-                    }
-                    String sql = "insert into `travel_card`(`mac_addr`, `is_disconnect`, `is_connect`) values('" + macAddr + "', 1, 1)";
-                    TravelDB.execute(sql);
-                    setResult(ShowTravelCardActivity.RESULT_CODE);
-                    Intent intent = new Intent(ScanTravelCardActivity.this, BindTravelCardActivity.class);
-                    intent.putExtra("mac_addr", macAddr);
-                    intent.putExtra("distance", distance);
-                    startActivity(intent);
-                    finish();
-
                     break;
                 }
                 case R.id.gobackbt:{
@@ -88,16 +80,48 @@ public class ScanTravelCardActivity extends BaseActivity {
             switch(msg.what){
                 case 1001:{
                     macAddr = (String) msg.obj;
-                    showLabel.setText(getResources().getString(R.string.scan_success_text));
-                    myLoading.dismiss();
-                    reScanBt.setVisibility(View.VISIBLE);
-                    confirmBindBt.setVisibility(View.VISIBLE);
-                    scan_success_image.setVisibility(View.VISIBLE);
+                    //Log.e("doConnectDevice", macAddr);
                     BTSScanAPI.doConnectDevice(macAddr);
                     break;
                 }
                 case 1002:{
                     distance = (double) msg.obj;
+                    break;
+                }
+                case 1006:{
+                    AlertDialog alertDialog = new AlertDialog(ScanTravelCardActivity.this);
+                    alertDialog.builder().setTitle("绑定行李牌").setMsg("绑定失败，请重新扫描绑定").show();
+                    break;
+                }
+                case 1007:{
+                    //macAddr = (String) msg.obj;
+                    String sql = "insert into `travel_card`(`mac_addr`, `is_disconnect`, `is_connect`) values('" + macAddr + "', 1, 1)";
+                    TravelDB.execute(sql);
+                    setResult(ShowTravelCardActivity.RESULT_CODE);
+                    Intent intent = new Intent(ScanTravelCardActivity.this, BindTravelCardActivity.class);
+                    intent.putExtra("mac_addr", macAddr);
+                    intent.putExtra("distance", distance);
+                    startActivity(intent);
+                    finish();
+                    break;
+                }
+                case 1008:{
+                    AlertDialog alertDialog = new AlertDialog(ScanTravelCardActivity.this);
+                    alertDialog.builder().setTitle("扫描行李牌").setMsg("没有扫描到可用行李牌，请重新扫描").show();
+                    break;
+                }
+                case 1009:{
+                    try {
+                        Thread.sleep(3000);
+                    }catch(InterruptedException e){
+
+                    }
+
+                    showLabel.setText(getResources().getString(R.string.scan_success_text));
+                    myLoading.dismiss();
+                    reScanBt.setVisibility(View.VISIBLE);
+                    confirmBindBt.setVisibility(View.VISIBLE);
+                    scan_success_image.setVisibility(View.VISIBLE);
                     break;
                 }
                 default:{
@@ -140,7 +164,7 @@ public class ScanTravelCardActivity extends BaseActivity {
 
         CardListener instance = CardListener.getInstance();
         instance.setMyHandler(myHandler);
-        SDKAPI.setDeviceListener(instance);
+        //SDKAPI.setDeviceListener(instance);
         BTSScanAPI.setScanListener(instance);
         instance.isListen = true;
         if(!SDKAPI.isBluetoothOn(this)){

@@ -23,6 +23,8 @@ public class CardListener implements ScanCtrListener, OnDeviceListener {
 
     public String macAddr = "";
 
+    public boolean isConnected = false;
+
     private CardListener(){
     }
 
@@ -41,60 +43,72 @@ public class CardListener implements ScanCtrListener, OnDeviceListener {
     @Override
     public void scanFail() {
         myHandler.sendEmptyMessage(2002);
+        //Log.e("CardListener", "scanFail");
     }
 
     @Override
-    public void scanSuccess(final String s) {
-
+    public void scanSuccess(final String mac) {
+        //Log.e("CardListener", "scanSuccess_" + mac);
+        Message msg = Message.obtain();
+        msg.what = 1001;
+        msg.obj = mac;
+        myHandler.sendMessage(msg);
     }
 
     @Override
     public void connectSucess() {
-
+        myHandler.sendEmptyMessage(1009);
+        //Log.e("CardListener", "connectSucess");
     }
 
     @Override
     public void connectFail() {
-
+        myHandler.sendEmptyMessage(1008);
+        //Log.e("CardListener", "connectFail");
     }
 
     @Override
     public void disConnect() {
-
+        //Log.e("CardListener", "disConnect");
     }
 
     @Override
-    public void bindSucess(final String s) {
-
+    public void bindSucess(final String mac) {
+        Message msg = Message.obtain();
+        msg.what = 1007;
+        msg.obj = mac;
+        myHandler.sendMessage(msg);
+        //Log.e("CardListener", "bindSucess");
     }
 
     @Override
     public void bindFail() {
-
+        myHandler.sendEmptyMessage(1007);
+        //Log.e("CardListener", "bindFail");
     }
 
     @Override
     public void sendStatus(String s) {
-
+        //Log.e("CardListener", "sendStatus");
     }
 
     @Override
     public void unBindSucess(final String s) {
-
+        //Log.e("CardListener", "unBindSucess");
     }
 
     @Override
     public void unBindFail() {
-
+        //Log.e("CardListener", "unBindFail");
     }
 
     @Override
     public boolean isAutoConnect(String mac) {
         if(mac.equalsIgnoreCase(macAddr) && autoConnect){
-            Log.e("6renyou", "auto connect:" + mac + ", true");
+            //Log.e("6renyou", "auto connect:" + mac + ", true");
             return true;
         }else{
-            Log.e("6renyou", "auto connect:" + mac + ", false");
+            //Log.e("6renyou", "auto connect:" + mac + ", false");
             return false;
         }
     }
@@ -109,7 +123,7 @@ public class CardListener implements ScanCtrListener, OnDeviceListener {
         Message msg = Message.obtain();
         msg.what = 1001;
         msg.obj = mac;
-        Log.e("6renyou", "device discovery:" + mac);
+        //Log.e("6renyou", "device discovery:" + mac);
         myHandler.sendMessage(msg);
     }
 
@@ -136,11 +150,17 @@ public class CardListener implements ScanCtrListener, OnDeviceListener {
         msg.what = 1002;
         msg.obj = distance;
         myHandler.sendMessage(msg);
+        if(distance > 0){
+            isConnected = true;
+        }else{
+            isConnected = false;
+        }
+        //Log.e("deviceDistance", mac + "," + distance);
     }
 
     @Override
     public void deviceConnected(String mac) {
-        Log.e("6renyou", "connected : " + mac);
+        //Log.e("6renyou", "connected : " + mac);
         Message msg = Message.obtain();
         msg.what = 1003;
         msg.obj = mac;

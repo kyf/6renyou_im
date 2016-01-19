@@ -104,6 +104,7 @@
     <orderEntry type="library" exported="" name="mid-sdk-2.20" level="project" />
     <orderEntry type="library" exported="" name="httpclient-4.2.5" level="project" />
     <orderEntry type="library" exported="" name="wup-1.0.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="TencentLocationSDK_v4.4.6_r206631_151119_1441" level="project" />
     <orderEntry type="library" exported="" name="support-v4-23.1.0" level="project" />
   </component>
 </module>
