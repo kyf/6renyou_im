@@ -412,6 +412,8 @@ public class BindTravelCardActivity extends BaseActivity implements View.OnClick
                 .setTicker(str)
                 .setContentIntent(intent1)
                 .getNotification();
+        notify1.defaults |= Notification.DEFAULT_SOUND;
+        notify1.defaults |= Notification.DEFAULT_VIBRATE;
         nm.notify(1, notify1);
     }
 
