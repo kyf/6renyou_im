@@ -2,6 +2,7 @@ package com.liurenyou.im;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Build;
 import android.util.Log;
@@ -122,10 +123,16 @@ public class JavaScriptMethods {
     public String getDeviceInfo(){
         Map<String, String> info = new HashMap<String, String>();
         TimeZone tz = TimeZone.getDefault();
+        String versionName = "1.0";
+        try {
+            versionName = mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionName;
+        }catch(PackageManager.NameNotFoundException e){
+            Log.e("JavascriptMethods", e.getMessage());
+        }
 
         String name = Build.USER;//设备名称，用户在设置中自定义的名称
         String timezone = tz.getID();//时区
-        String appversion = "1.0";//app版本
+        String appversion = versionName;//app版本
         String clientid = Utils.deviceToken;//客户端id
         String systemversion = Build.VERSION.RELEASE  ;//系统版本，7.0+
         String systemname = "Android";//系统名称，一般为iPhone OS
