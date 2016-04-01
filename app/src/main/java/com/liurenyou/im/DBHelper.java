@@ -24,7 +24,7 @@ public class DBHelper extends SQLiteOpenHelper{
         String sql = "create table `appglobal`(`id` integer primary key, `isfirst` int(10), `deviceToken` varchar(250))";
         db.execSQL(sql);
 
-        sql = "insert into `appglobal`(`isfirst`) values(0)";
+        sql = "insert into `appglobal`(`id`, `isfirst`) values(1, 0)";
         db.execSQL(sql);
         if(this.db == null){
             this.db = db;

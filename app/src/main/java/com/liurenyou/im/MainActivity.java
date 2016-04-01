@@ -108,7 +108,6 @@ public class MainActivity extends Activity {
                     Toast.makeText(myContext, msg.obj.toString(), Toast.LENGTH_LONG).show();
                     break;
                 case 1002:
-                    mainView = (WebView) findViewById(R.id.MainView);
                     String[] data = (String[]) msg.obj;
                     String deviceToken = data[0];
                     String token = data[1];
@@ -292,11 +291,13 @@ public class MainActivity extends Activity {
         Cursor cursor = DBHelper.query(sql);
         cursor.moveToFirst();
 
+
         if(cursor.getCount() == 0){
             sql = "insert into `appglobal`(`isfirst`) values(" + versionCode + ")";
             DBHelper.execute(sql);
             return true;
         }
+
 
         int isfirst = cursor.getInt(cursor.getColumnIndex("isfirst"));
 
@@ -305,7 +306,7 @@ public class MainActivity extends Activity {
         }else{
             sql = "update `appglobal` set `isfirst` = " + versionCode + " where id = 1";
             DBHelper.execute(sql);
-            return false;
+            return true;
         }
     }
 
@@ -314,6 +315,31 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Utils.deviceToken = Utils.getDeviceToken();
+        mainView = (WebView) findViewById(R.id.MainView);
+
+        XGPushManager.registerPush(getApplicationContext(), new XGIOperateCallback() {
+            @Override
+            public void onSuccess(Object data, int flag) {
+                Log.e("TPush", "注册成功，设备token为：" + data);
+                Utils.getToken(myContext, true, data.toString());
+                Utils.saveDeviceToken(data.toString());
+
+                if (!hasLoaded) {
+                    Message msg = Message.obtain();
+                    msg.what = 1002;
+                    msg.obj = new String[]{"", ""};
+                    myHandler.sendMessage(msg);
+                }
+
+            }
+
+            @Override
+            public void onFail(Object data, int errCode, String msg) {
+                Log.e("TPush", "注册失败，错误码：" + errCode + ",错误信息：" + msg);
+                Utils.getToken(myContext, false, msg);
+            }
+        });
+
 
         if(isFirst()) {
             Intent intent = new Intent(this, GuideActivity.class);
@@ -340,31 +366,6 @@ public class MainActivity extends Activity {
         pd.show();
 
         api.registerApp(Constants.APP_ID);
-
-
-        XGPushManager.registerPush(getApplicationContext(), new XGIOperateCallback() {
-            @Override
-            public void onSuccess(Object data, int flag) {
-                Log.e("TPush", "注册成功，设备token为：" + data);
-                Utils.getToken(myContext, true, data.toString());
-                Utils.saveDeviceToken(data.toString());
-
-                if (!hasLoaded) {
-                    Message msg = Message.obtain();
-                    msg.what = 1002;
-                    msg.obj = new String[]{"", ""};
-                    myHandler.sendMessage(msg);
-                }
-
-            }
-
-            @Override
-            public void onFail(Object data, int errCode, String msg) {
-                Log.e("TPush", "注册失败，错误码：" + errCode + ",错误信息：" + msg);
-                Utils.getToken(myContext, false, msg);
-            }
-        });
-
 
         if(Utils.deviceToken != null && !Utils.deviceToken.equalsIgnoreCase("")) {
             Message msg = Message.obtain();
@@ -410,7 +411,7 @@ public class MainActivity extends Activity {
 
     public boolean onKeyDown(int keyCode, KeyEvent e){
         if(keyCode == KeyEvent.KEYCODE_BACK){
-            if(mainView.canGoBack() && mainView.getVisibility() == View.VISIBLE && !mainView.getUrl().equals(Constants.homePage)){
+            if(mainView != null && mainView.canGoBack() && mainView.getVisibility() == View.VISIBLE && !mainView.getUrl().equals(Constants.homePage)){
                 mainView.goBack();
                 return true;
             }else{
