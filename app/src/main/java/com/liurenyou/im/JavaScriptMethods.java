@@ -1,7 +1,9 @@
 package com.liurenyou.im;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Build;
@@ -15,6 +17,7 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
 /**
@@ -157,17 +160,7 @@ public class JavaScriptMethods {
 
     @JavascriptInterface
     public void startTravelCard(){
-        Intent intent;
-        String macAddr = hasTravelCard();
 
-        if(!macAddr.equals("")){
-            intent = new Intent(mContext, BindTravelCardActivity.class);
-            intent.putExtra("mac_addr", macAddr);
-            intent.putExtra("action", "rebind");
-        }else{
-            intent = new Intent(mContext, ShowTravelCardActivity.class);
-        }
-        mContext.startActivity(intent);
     }
 
     public String hasTravelCard(){
@@ -178,6 +171,29 @@ public class JavaScriptMethods {
         cursor.moveToFirst();
         result = cursor.getString(cursor.getColumnIndex("mac_addr"));
         return result;
+    }
+
+    @JavascriptInterface
+    public String getLiurenyouChannel(){
+        Context app = MyApplication.getContext();
+        String key = "LIURENYOU_CHANNEL";
+        String result = "";
+        try {
+            ApplicationInfo appInfo = app.getPackageManager().getApplicationInfo(app.getPackageName(), PackageManager.GET_META_DATA);
+            /*
+            Set<String> sets = appInfo.metaData.keySet();
+            for(String name:sets){
+                Log.e("getmetadata keys >>", name);
+            }
+            Log.e(">>>>>>>>>", appInfo.metaData.getString("LIURENYOU_CHANNEL"));
+            */
+            result = appInfo.metaData.getString(key);
+        }catch(PackageManager.NameNotFoundException e){
+            result = "unknown";
+        }
+        finally {
+            return result;
+        }
     }
 }
 

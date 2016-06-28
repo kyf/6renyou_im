@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.liurenyou.im"
-    android:versionCode="7"
-    android:versionName="1.7" >
+    android:versionCode="10"
+    android:versionName="1.9.1" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.RESTART_PACKAGES" />
     <uses-permission android:name="android.permission.BROADCAST_STICKY" />
@@ -21,8 +19,7 @@
     <uses-permission android:name="android.permission.GET_TASKS" />
     <uses-permission android:name="android.permission.READ_LOGS" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
 
     <application
         android:name=".MyApplication"
@@ -130,6 +127,9 @@
 
         <meta-data android:name="TencentMapSDK" android:value="LYDBZ-5QPKW-I7VRJ-R6PDS-NDJWF-QYBH7" />
 
+        <!--360渠道包-->
+        <meta-data android:name="LIURENYOU_CHANNEL" android:value="360qihu"/>
+
         <activity
             android:name=".ShowActivity"
             android:label="@string/app_name"
@@ -143,22 +143,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ShowTravelCardActivity"
-            android:label="@string/title_activity_show_travel_card" >
-        </activity>
-        <activity
             android:name=".BaseActivity"
             android:label="@string/title_activity_base" >
-        </activity>
-        <activity android:name=".ScanTravelCardActivity" >
-        </activity>
-        <activity android:name=".BindTravelCardActivity"
-            android:launchMode="singleTask"
-            >
-            <intent-filter>
-                <action android:name="com.liurenyou.im.intent_bind_travel_card" />
-                <category android:name="android.intent.category.DEFAULT"/>
-            </intent-filter>
         </activity>
         <activity
             android:name=".ShowPositionActivity"

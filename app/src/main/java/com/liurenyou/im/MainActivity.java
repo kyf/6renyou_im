@@ -321,22 +321,26 @@ public class MainActivity extends Activity {
             @Override
             public void onSuccess(Object data, int flag) {
                 Log.e("TPush", "注册成功，设备token为：" + data);
-                Utils.getToken(myContext, true, data.toString());
-                Utils.saveDeviceToken(data.toString());
-
+                //Utils.getToken(myContext, true, data.toString());
+                Utils.saveDeviceToken(Utils.deviceToken);
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("deviceToken", data.toString());
+                params.put("userId", Utils.deviceToken);
+                Utils.registerDevicetoken(params);
+                /*
                 if (!hasLoaded) {
                     Message msg = Message.obtain();
                     msg.what = 1002;
                     msg.obj = new String[]{"", ""};
                     myHandler.sendMessage(msg);
                 }
-
+                */
             }
 
             @Override
             public void onFail(Object data, int errCode, String msg) {
                 Log.e("TPush", "注册失败，错误码：" + errCode + ",错误信息：" + msg);
-                Utils.getToken(myContext, false, msg);
+                //Utils.getToken(myContext, false, msg);
             }
         });
 
@@ -366,6 +370,8 @@ public class MainActivity extends Activity {
         pd.show();
 
         api.registerApp(Constants.APP_ID);
+
+        //Log.e("deviceToken", Utils.deviceToken);
 
         if(Utils.deviceToken != null && !Utils.deviceToken.equalsIgnoreCase("")) {
             Message msg = Message.obtain();
